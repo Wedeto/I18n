@@ -69,9 +69,6 @@ class Translator
      */
     public function getLocale()
     {
-        if ($this->locale === null)
-            $this->locale = Locale::getDefault();
-
         return $this->locale;
     }
 

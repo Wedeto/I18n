@@ -35,6 +35,7 @@ namespace WASP\I18n
     class Translate
     {
         private static $translator = null;
+        private static $locale = null;
         private static $stack = array();
         private static $locales = array();
         private static $domains = array();
@@ -72,100 +73,40 @@ namespace WASP\I18n
         {
             if (!defined('WASP_TEST') || constant('WASP_TEST') === 0) return;
             self::$translator = null;
+            $this->locale = null;
             $this->locales = array();
             $this->domains = array();
             $this->stack = array();
         }
-
-        public static function translate($msg)
+        
+        public static function setLocale($locale)
         {
-            if (is_array($msg))
-                $args = $msg;
-            else
-                $args = func_get_args();
-
-            if (count($args) < 1)
-                throw new I18nException("Not enough parameters specified");
-            $msg = array_shift($args);
-
-            $str = $this->translator->translate($msg);
-            $str = gettext($msg);
-            if (count($args))
-            {
-                array_unshift($args, $str);
-                $str = call_user_func_array('sprintf', $args);
-            }
-
-            return $str;
+            $locale = self::findBestLocale($locale);
+            self::$translator->setLocale($locale);
+            return $locale;
         }
 
-        public static function translateDomain($domain)
+        public static function translate(string $msgid, string $domain = "", array $values = array())
         {
-            if (is_array($domain))
-                $args = $domain;
-            else
-                $args = func_get_args();
-
-            if (count($args) < 2)
-                throw new I18nException("Not enough parameters specified");
-            $domain = array_shift($args);
-            $msg = array_shift($args);
-
-            $str = $this->translator->translate($msg, $domain);
-            if (count($args))
+            $domain = empty($domain) ? null : $domain;
+            $str = $this->translator->translate($msgid, $domain, self::$locale);
+            $str = gettext($msg);
+            if (count($values))
             {
-                array_unshift($args, $str);
+                array_unshift($values, $str);
                 $str = call_user_func_array('sprintf', $args);
             }
 
             return $str;
         }
         
-        public static function translatePlural($msg)
+        public static function translatePlural($string msgid, string $plural, int $n, string $domain = "", array $values = array())
         {
-            if (is_array($msg))
-                $args = $msg;
-            else
-                $args = func_get_args();
+            $str = $this->translator->translatePlural($msgid, $plural, $n, $domain);
 
-            if (count($args) < 3)
-                throw new I18nException("Not enough parameters specified");
-
-            $msg_singular = array_shift($args);
-            $msg_plural = array_shift($args);
-            $msg_number = $args[0];
-
-            $str = $this->translator->translatePlural($msg_singular, $msg_plural, $msg_number);
-
-            if (count($args))
+            if (count($values))
             {
-                array_unshift($args, $str);
-                $str = call_user_func_array('sprintf', $args);
-            }
-
-            return $str;
-        }
-
-        public static function translatePluralDomain($domain)
-        {
-            if (is_array($domain))
-                $args = $domain;
-            else
-                $args = func_get_args();
-
-            if (count($args) < 4)
-                throw new I18nException("Not enough parameters specified");
-
-            $msg_domain = array_shift($args);
-            $msg_singular = array_shift($args);
-            $msg_plural = array_shift($args);
-            $msg_number = $args[0];
-
-            $str = $this->translator->translatePlural($msg_singular, $msg_plural, $msg_number, $msg_domain);
-
-            if (count($args))
-            {
-                array_unshift($args, $str);
+                array_unshift($values, $str);
                 $str = call_user_func_array('sprintf', $args);
             }
 
@@ -183,12 +124,16 @@ namespace WASP\I18n
             $prev = array_pop(self::$stack);
             if ($prev)
                 self::$translator->setTextDomain($prev);
+            return $prev;
         }
 
         public static function setupTranslation($module, $path, $classname)
         {
             if (self::$translator === null)
+            {
                 self::$translator = new Translator();
+                self::$translator->setFallbackLocale('en');
+            }
 
             if ($classname !== null)
             {
@@ -232,6 +177,12 @@ namespace WASP\I18n
                     self::$domains[$domain][$entry] = true;
                 }
             }
+            
+            if (self::$translator->getLocale() === null)
+            {
+                $keys = array_keys(self::$locales);
+                self::setLocale(reset($keys));
+            }
         }
 
     }
@@ -241,24 +192,24 @@ namespace WASP\I18n
 
 namespace
 {
-    function t()
+    function t(string $msgid, array $values = array())
     {
-        return Translate::translate(func_get_args()); 
+        return Translate::translate($msg, $values);
     }
 
-    function tn()
+    function tn(string $msgid, string $plural, int $n, array $values = array());
     {
-        return Translate::translatePlural(func_get_args()); 
+        return Translate::translatePlural($msgid, $plural, $n);
     }
 
-    function td()
+    function td(string $msgid, string $domain, array $values = array())
     {
-        return Translate::translateDomain(func_get_args());
+        return Translate::translate($msgid, $domain, $values);
     }
 
-    function tdn()
+    function tdn(string $msgid, string $plural, int $n, string $domain, array $values = array())
     {
-        return Translate::translatePluralDomain(func_get_args());
+        return Translate::translatePlural($msgid, $plural, $n, $domain, $values);
     }
 
     function setTextDomain($dom)
