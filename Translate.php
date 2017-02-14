@@ -28,6 +28,9 @@ namespace WASP\I18n
     use WASP\I18n\Translator\Translator;
     use WASP\Dir;
     use WASP\Debug;
+    use WASP\Path;
+    use Locale;
+    use Dictionary;
 
     class Translate
     {
@@ -38,7 +41,40 @@ namespace WASP\I18n
 
         public static function getLocaleList($textDomain = null)
         {
+            if ($textDomain === null)
+                return array_keys(self::$locales);
+        
+            if (!isset(self::$domains[$textDomain]))
+                return array();
 
+            $result = array();
+        }
+
+        public static function findBestLocale($locale, $textDomain = null)
+        {
+            $locale_data = new Dictionary(Locale::parseLocale($locale));
+            $language = $locale_data->get('language');
+            if (empty($language))
+                return null;
+
+            $locales = $this->getLocaleList($textDomain);
+            $region = $language . '_' . $locale_data->get('region', '');
+            if (isset($locales[$region]))
+                return $region;
+
+            return isset($locales[$language]) ? $language : null;
+        }
+
+        /**
+         * Reset the global state of the object
+         */
+        public static function reset()
+        {
+            if (!defined('WASP_TEST') || constant('WASP_TEST') === 0) return;
+            self::$translator = null;
+            $this->locales = array();
+            $this->domains = array();
+            $this->stack = array();
         }
 
         public static function translate($msg)
@@ -200,7 +236,7 @@ namespace WASP\I18n
 
     }
 
-    Translate::setupTranslation('core', WASP_ROOT . '/core/language', null);
+    Translate::setupTranslation('core', Path::$ROOT . '/core/language', null);
 }
 
 namespace

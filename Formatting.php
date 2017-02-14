@@ -29,9 +29,8 @@ use DateTime;
 use DateTimeZone;
 use Locale;
 use NumberFormatter;
-use WASP\Debug;
 
-class I18N
+class Formatting
 {
     const DATE = 1;
     const TIME = 2;
