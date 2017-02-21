@@ -187,7 +187,8 @@ namespace WASP\I18n
 
     }
 
-    Translate::setupTranslation('core', Path::$ROOT . '/core/language', null);
+    $path = Path::current();
+    Translate::setupTranslation('core', $path->core . '/language', null);
 }
 
 namespace
