@@ -26,11 +26,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace WASP\I18n
 {
     use WASP\I18n\Translator\Translator;
-    use WASP\Dir;
+    use WASP\IO\Dir;
     use WASP\Debug;
     use WASP\Path;
+    use WASP\Dictionary;
     use Locale;
-    use Dictionary;
 
     class Translate
     {
@@ -39,6 +39,8 @@ namespace WASP\I18n
         private static $stack = array();
         private static $locales = array();
         private static $domains = array();
+        private static $language = 'en';
+        private static $translations = array();
 
         public static function getLocaleList($textDomain = null)
         {
@@ -58,7 +60,7 @@ namespace WASP\I18n
             if (empty($language))
                 return null;
 
-            $locales = $this->getLocaleList($textDomain);
+            $locales = self::getLocaleList($textDomain);
             $region = $language . '_' . $locale_data->get('region', '');
             if (isset($locales[$region]))
                 return $region;
@@ -73,10 +75,10 @@ namespace WASP\I18n
         {
             if (!defined('WASP_TEST') || constant('WASP_TEST') === 0) return;
             self::$translator = null;
-            $this->locale = null;
-            $this->locales = array();
-            $this->domains = array();
-            $this->stack = array();
+            self::$locale = null;
+            self::$locales = array();
+            self::$domains = array();
+            self::$stack = array();
         }
         
         public static function setLocale($locale)
@@ -84,6 +86,37 @@ namespace WASP\I18n
             $locale = self::findBestLocale($locale);
             self::$translator->setLocale($locale);
             return $locale;
+        }
+
+        public static function setLanguageOrder()
+        {
+            $args = func_get_args();
+            self::$translations = is_array($args[0]) ? $args[0] : $args;
+        }
+
+        public static function setLanguage($language)
+        {
+            self::$language = $language;
+        }
+
+        public static function translateList()
+        {
+            $texts = func_get_args();
+            if (is_array($texts[0])) $texts = $texts[0];
+            $langs = self::$translations;
+
+
+            if (count($texts) < count($langs))
+                $langs = array_slice($langs, 0, count($texts));
+            elseif (count($texts) > count($langs))
+                $texts = array_slice($texts, 0, count($langs));
+
+            $translations = array_combine($langs, $texts);
+            $language = self::$language;
+
+            $text = isset($translations[$language]) ? $translations[$language] : reset($translations);
+
+            return $text;
         }
 
         public static function translate(string $msgid, string $domain = "", array $values = array())
@@ -100,7 +133,7 @@ namespace WASP\I18n
             return $str;
         }
         
-        public static function translatePlural($string msgid, string $plural, int $n, string $domain = "", array $values = array())
+        public static function translatePlural(string $msgid, string $plural, int $n, string $domain = "", array $values = array())
         {
             $str = $this->translator->translatePlural($msgid, $plural, $n, $domain);
 
@@ -198,7 +231,7 @@ namespace
         return Translate::translate($msg, $values);
     }
 
-    function tn(string $msgid, string $plural, int $n, array $values = array());
+    function tn(string $msgid, string $plural, int $n, array $values = array())
     {
         return Translate::translatePlural($msgid, $plural, $n);
     }
@@ -225,19 +258,6 @@ namespace
 
     function tl()
     {
-        $texts = func_get_args();
-        $langs = WASP\Template::$last_template->translations;
-
-        if (count($texts) < count($langs))
-            $langs = array_slice($langs, 0, count($texts));
-        elseif (count($texts) > count($langs))
-            $texts = array_slice($texts, 0, count($langs));
-
-        $translations = array_combine($langs, $texts);
-        $language = WASP\Request::$language;
-
-        $text = isset($translations[$language]) ? $translations[$language] : reset($translations);
-
-        return $text;
+        return WASP\I18n\Translate::translateList(func_get_args());
     }
 }
