@@ -126,6 +126,9 @@ class Translator
     public function translate($message, $textDomain = null, $locale = null)
     {
         $locale = ($locale ?: $this->getLocale());
+        if ($locale === 'C')
+            return $message;
+
         $textDomain = $textDomain ?: $this->getTextDomain();
         $translation = $this->getTranslatedMessage($message, $locale, $textDomain);
 
@@ -156,6 +159,9 @@ class Translator
     public function translatePlural(string $singular, string $plural, int $number, string $textDomain = null, string $locale = null)
     {
         $locale = $locale ?: $this->getLocale();
+        if ($locale === 'C')
+            return $number === 1 ? $singular : $plural;
+
         $textDomain = $textDomain ?: $this->getTextDomain();
         $translation = $this->getTranslatedMessage($singular, $locale, $textDomain);
 
