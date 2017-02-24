@@ -318,7 +318,7 @@ namespace WASP\I18n
 
     // @codeCoverageIgnoreStart
     Translate::setLogger();
-    // @CodeCoverageIgnoreEnd
+    // @codeCoverageIgnoreEnd
 }
 
 namespace
