@@ -17,6 +17,8 @@
 
 namespace WASP\I18n\Translator;
 
+use WASP\Debug\LoggerAwareStaticTrait;
+
 use Locale;
 use WASP\Cache;
 
@@ -25,6 +27,8 @@ use WASP\Cache;
  */
 class Translator
 {
+    use LoggerAwareStaticTrait;
+
     /** Messages loaded by the translator. */
     protected $messages = array();
 
@@ -135,6 +139,12 @@ class Translator
         if ($translation !== null && $translation !== '')
             return $translation;
 
+        // Log untranslated message
+        self::$logger->debug(
+            "Untranslated message: \"{msgid}\"", 
+            ["msgid" => $message, "locale" => $locale, "domain" => $textDomain]
+        );
+
         if (
             null !== ($fallbackLocale = $this->getFallbackLocale())
             && $locale !== $fallbackLocale
@@ -167,6 +177,12 @@ class Translator
 
         if (empty($translation))
         {
+            // Log untranslated message
+            self::$logger->debug(
+                "Untranslated message: \"{msgid}\"", 
+                ["msgid" => $singular, "msgid_plural" => $plural, "locale" => $locale, "domain" => $textDomain]
+            );
+
             if (null !== ($fallbackLocale = $this->getFallbackLocale()) && $locale !== $fallbackLocale)
                 return $this->translatePlural($singular, $plural, $number, $textDomain, $fallbackLocale);
 
@@ -299,3 +315,7 @@ class Translator
         return $this->cache->get($textDomain, $locale);
     }
 }
+
+// @codeCoverageIgnoreStart
+Translator::setLogger();
+// @codeCoverageIgnoreEnd
