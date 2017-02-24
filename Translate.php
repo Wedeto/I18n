@@ -196,7 +196,7 @@ namespace WASP\I18n
         {
             $domain = empty($domain) ? null : $domain;
             $str = $this->translator->translate($msgid, $domain, $this->locale);
-            $str = gettext($msg);
+            $str = gettext($msgid);
             if (count($values))
             {
                 array_unshift($values, $str);
@@ -332,7 +332,7 @@ namespace
          */
         function t(string $msgid, array $values = array())
         {
-            return System::translate()->translate($msg, $values);
+            return System::translate()->translate($msgid, "", $values);
         }
 
         /**
@@ -340,7 +340,7 @@ namespace
          */
         function tn(string $msgid, string $plural, int $n, array $values = array())
         {
-            return System::translate()->translatePlural($msgid, $plural, $n);
+            return System::translate()->translatePlural($msgid, $plural, $n, "", $values);
         }
 
         /**
