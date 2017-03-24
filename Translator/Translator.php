@@ -19,7 +19,7 @@ namespace WASP\I18n\Translator;
 
 use Locale;
 
-use WASP\Debug\LoggerAwareStaticTrait;
+use WASP\Log\LoggerAwareStaticTrait;
 use WASP\Util\Cache;
 
 /**

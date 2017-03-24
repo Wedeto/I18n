@@ -25,7 +25,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace WASP\I18n
 {
-    use WASP\Debug\LoggerAwareStaticTrait;
+    use WASP\Log\LoggerAwareStaticTrait;
     use WASP\I18n\Translator\Translator;
     use WASP\IO\Dir;
     use WASP\Util\Dictionary;
@@ -323,9 +323,9 @@ namespace WASP\I18n
 
 namespace
 {
-    use WASP\System;
+    use WASP\Platform\System;
 
-    if (class_exists('WASP\\System', false))
+    if (class_exists(System::class, false))
     {
         /**
          * @see WASP\I18n\Translate\translate

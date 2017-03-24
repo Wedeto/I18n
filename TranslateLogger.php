@@ -28,9 +28,9 @@ namespace WASP\I18n;
 use Psr\Log\LogLevel;
 use WASP\Request;
 use WASP\IO\File;
-use WASP\Debug\LogWriterInterface;
-use WASP\Debug\Logger;
-use WASP\System;
+use WASP\Log\LogWriterInterface;
+use WASP\Log\Logger;
+use WASP\Platform\System;
 
 /**
  * TranslateLogger hooks into the logger of WASP.I18n.Translator.Translator and
@@ -85,7 +85,7 @@ class TranslateLogger implements LogWriterInterface
             'WASP\I18n\Translate',
             'WASP\I18n\Translator\Translator',
             'Psr\Log\AbstractLogger',
-            'WASP\Debug\Logger',
+            'WASP\Log\Logger',
             'WASP\I18n\TranslateLogger'
         );
 
