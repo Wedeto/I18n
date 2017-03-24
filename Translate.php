@@ -28,7 +28,7 @@ namespace WASP\I18n
     use WASP\Debug\LoggerAwareStaticTrait;
     use WASP\I18n\Translator\Translator;
     use WASP\IO\Dir;
-    use WASP\Dictionary;
+    use WASP\Util\Dictionary;
     use Locale;
 
     /**

@@ -17,7 +17,7 @@
 
 namespace WASP\I18n\Translator;
 
-use WASP\Dictionary;
+use WASP\Util\Dictionary;
 use WASP\I18n\Translator\Plural\Rule as PluralRule;
 
 /**

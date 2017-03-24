@@ -17,10 +17,10 @@
 
 namespace WASP\I18n\Translator;
 
-use WASP\Debug\LoggerAwareStaticTrait;
-
 use Locale;
-use WASP\Cache;
+
+use WASP\Debug\LoggerAwareStaticTrait;
+use WASP\Util\Cache;
 
 /**
  * Translator.
