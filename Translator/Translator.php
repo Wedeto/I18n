@@ -19,7 +19,7 @@ namespace WASP\I18n\Translator;
 
 use Locale;
 
-use WASP\Log\LoggerAwareStaticTrait;
+use WASP\Util\LoggerAwareStaticTrait;
 use WASP\Util\Cache;
 
 /**
@@ -50,6 +50,7 @@ class Translator
     /** Instantiate a translator */
     public function __construct()
     {
+        self::getLogger();
         $this->cache = new Cache('translate');
     }
 
@@ -315,7 +316,3 @@ class Translator
         return $this->cache->get($textDomain, $locale);
     }
 }
-
-// @codeCoverageIgnoreStart
-Translator::setLogger();
-// @codeCoverageIgnoreEnd

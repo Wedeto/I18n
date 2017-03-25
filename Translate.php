@@ -25,7 +25,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace WASP\I18n
 {
-    use WASP\Log\LoggerAwareStaticTrait;
+    use WASP\Util\LoggerAwareStaticTrait;
     use WASP\I18n\Translator\Translator;
     use WASP\IO\Dir;
     use WASP\Util\Dictionary;
@@ -51,6 +51,7 @@ namespace WASP\I18n
 
         public function __construct()
         {
+            self::getLogger();
             $this->translator = new Translator();
             $this->translator->setFallbackLocale('en');
             $this->locale = 'en';
@@ -315,10 +316,6 @@ namespace WASP\I18n
             }
         }
     }
-
-    // @codeCoverageIgnoreStart
-    Translate::setLogger();
-    // @codeCoverageIgnoreEnd
 }
 
 namespace
