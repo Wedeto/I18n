@@ -29,7 +29,7 @@ namespace WASP\I18n
 
     use WASP\Util\LoggerAwareStaticTrait;
     use WASP\I18n\Translator\Translator;
-    use WASP\IO\Dir;
+    use WASP\IO\DirReader;
     use WASP\Util\Dictionary;
 
     /**
@@ -307,7 +307,7 @@ namespace WASP\I18n
             if (!isset($domains[$domain]))
                 $this->domains[$domain] = array();
 
-            foreach (new Dir($path, Dir::READ_DIR) as $entry)
+            foreach (new DirReader($path, DirReader::READ_DIR) as $entry)
             {
                 if (!isset($this->locales[$entry]))
                     $this->locales[$entry] = array($domain);

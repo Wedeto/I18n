@@ -30,6 +30,8 @@ use DateTimeZone;
 use Locale;
 use NumberFormatter;
 
+use WASP\Util\Function as WF;
+
 class Formatting
 {
     const DATE = 1;
@@ -127,7 +129,7 @@ class Formatting
     {
         if (!($date instanceof DateTime))
         {
-            if (\is_int_val($date))
+            if (WF::is_int_val($date))
                 $date = new DateTime("@" . $date);
             elseif (is_string($date))
                 $date = new DateTime($date);

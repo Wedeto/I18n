@@ -26,7 +26,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace WASP\I18n;
 
 use Psr\Log\LogLevel;
-use WASP\IO\File;
+use WASP\Util\Hook;
 use WASP\Log\LogWriterInterface;
 use WASP\Log\Logger;
 use WASP\Platform\System;
@@ -141,7 +141,6 @@ class TranslateLogger implements LogWriterInterface
         fprintf($fh, "\n");
         fclose($fh);
 
-        $f = new File($file);
-        $f->setPermissions();
+        Hook::execute("WASP.IO.FileCreated", ['filename' => $file]);
     }
 }
