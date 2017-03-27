@@ -42,6 +42,8 @@ namespace WASP\I18n
     {
         use LoggerAwareStaticTrait;
 
+        protected static $instance = null;
+
         private $translator;
         private $locale;
         private $stack = array();
@@ -50,6 +52,27 @@ namespace WASP\I18n
         private $language = 'en';
         private $translations = array();
 
+        /** 
+         * @return Translate The current translation instance
+         */
+        public static function getInstance()
+        {
+            if (empty(self::$instance))
+                self::$instance = new Translate;
+
+            return self::$instance;
+        }
+
+        /**
+         * Set the default translate instance
+         *
+         * @param Translate $trl The instance to set as default
+         */
+        public static function setInstance(Translate $trl)
+        {
+            self::$instance = $trl;
+        }
+
         public function __construct()
         {
             self::getLogger();
@@ -57,6 +80,7 @@ namespace WASP\I18n
             $this->translator->setFallbackLocale('en');
             $this->locale = 'en';
             $this->language = 'en';
+            self::$instance = $this;
         }
 
         /**
@@ -321,73 +345,68 @@ namespace WASP\I18n
 
 namespace
 {
-    use WASP\Platform\System;
-
-    if (class_exists(System::class, false))
+    /**
+     * @see WASP\I18n\Translate\translate
+     */
+    function t(string $msgid, array $values = array())
     {
-        /**
-         * @see WASP\I18n\Translate\translate
-         */
-        function t(string $msgid, array $values = array())
-        {
-            return System::translate()->translate($msgid, "", $values);
-        }
+        return Translate::getInstance()->translate($msgid, "", $values);
+    }
 
-        /**
-         * @see WASP\I18n\Translate\translatePlural
-         */
-        function tn(string $msgid, string $plural, int $n, array $values = array())
-        {
-            return System::translate()->translatePlural($msgid, $plural, $n, "", $values);
-        }
+    /**
+     * @see WASP\I18n\Translate\translatePlural
+     */
+    function tn(string $msgid, string $plural, int $n, array $values = array())
+    {
+        return Translate::getInstance()->translatePlural($msgid, $plural, $n, "", $values);
+    }
 
-        /**
-         * @see WASP\I18n\Translate\translate
-         */
-        function td(string $msgid, string $domain, array $values = array())
-        {
-            return System::translate()->translate($msgid, $domain, $values);
-        }
+    /**
+     * @see WASP\I18n\Translate\translate
+     */
+    function td(string $msgid, string $domain, array $values = array())
+    {
+        return Translate::getInstance()->translate($msgid, $domain, $values);
+    }
 
-        /**
-         * @see WASP\I18n\Translate\translatePlural
-         */
-        function tdn(string $msgid, string $plural, int $n, string $domain, array $values = array())
-        {
-            return System::translate()->translatePlural($msgid, $plural, $n, $domain, $values);
-        }
+    /**
+     * @see WASP\I18n\Translate\translatePlural
+     */
+    function tdn(string $msgid, string $plural, int $n, string $domain, array $values = array())
+    {
+        return Translate::getInstance()->translatePlural($msgid, $plural, $n, $domain, $values);
+    }
 
-        /**
-         * @see WASP\I18n\Translate\pushDomain
-         */
-        function setTextDomain($dom)
-        {
-            return System::translate()->pushDomain($dom);
-        }
+    /**
+     * @see WASP\I18n\Translate\pushDomain
+     */
+    function setTextDomain($dom)
+    {
+        return Translate::getInstance()->pushDomain($dom);
+    }
 
-        /**
-         * @see WASP\I18n\Translate\popDomain
-         */
-        function resetTextDomain()
-        {
-            return System::translate()->popDomain();
-        }
+    /**
+     * @see WASP\I18n\Translate\popDomain
+     */
+    function resetTextDomain()
+    {
+        return Translate::getInstance()->popDomain();
+    }
 
-        /**
-         * @see WASP\I18n\Translate\translateList
-         */
-        function tl()
-        {
-            return System::translate()->translateList(func_get_args());
-        }
-            
-        /**
-         * @see WASP\I18n\Translate\setLanguageOrder
-         */
-        function tlSetLanguageOrder()
-        {
-            $tr = System::translate();
-            call_user_func_array(array($tr, 'setLanguageOrder'), func_get_args());
-        }
+    /**
+     * @see WASP\I18n\Translate\translateList
+     */
+    function tl()
+    {
+        return Translate::getInstance()->translateList(func_get_args());
+    }
+        
+    /**
+     * @see WASP\I18n\Translate\setLanguageOrder
+     */
+    function tlSetLanguageOrder()
+    {
+        $tr = Translate::getInstance();
+        call_user_func_array(array($tr, 'setLanguageOrder'), func_get_args());
     }
 }

@@ -29,7 +29,6 @@ use Psr\Log\LogLevel;
 use WASP\Util\Hook;
 use WASP\Log\LogWriterInterface;
 use WASP\Log\Logger;
-use WASP\Platform\System;
 
 /**
  * TranslateLogger hooks into the logger of WASP.I18n.Translator.Translator and
@@ -108,14 +107,8 @@ class TranslateLogger implements LogWriterInterface
 
         $file = sprintf($this->pattern, $domain, $locale);
 
-        $req = System::request();
-        $app = $req->route;
-
         $fh = fopen($file, "a");
-        if ($app)
-            fprintf($fh, "#. Untranslated string for request to %s at %s\n", $app, date("Y-m-d H:i:s"));
-        else
-            fprintf($fh, "#. Untranslated string at %s\n", date("Y-m-d H:i:s"));
+        fprintf($fh, "#. Untranslated string at %s\n", date("Y-m-d H:i:s"));
 
         if ($informative_trace)
             fprintf($fh, "#: %s:%d\n", $informative_trace['file'], $informative_trace['line']);
