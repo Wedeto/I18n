@@ -27,35 +27,26 @@ class Parser
 {
     /**
      * String to parse.
-     *
-     * @var string
      */
     protected $string;
 
     /**
      * Current lexer position in the string.
-     *
-     * @var int
      */
     protected $currentPos;
 
     /**
      * Current token.
-     *
-     * @var Symbol
      */
     protected $currentToken;
 
     /**
      * Table of symbols.
-     *
-     * @var array
      */
     protected $symbolTable = [];
 
     /**
      * Create a new plural parser.
-     *
      */
     public function __construct()
     {
@@ -64,8 +55,6 @@ class Parser
 
     /**
      * Populate the symbol table.
-     *
-     * @return void
      */
     protected function populateSymbolTable()
     {
@@ -129,18 +118,17 @@ class Parser
         );
         $this->registerSymbol(')');
 
-        // Eof
+        // EOF
         $this->registerSymbol('eof');
     }
 
     /**
      * Register a left infix symbol.
      *
-     * @param  string  $id
-     * @param  int $leftBindingPower
-     * @return void
+     * @param string $id
+     * @param int $leftBindingPower
      */
-    protected function registerLeftInfixSymbol($id, $leftBindingPower)
+    protected function registerLeftInfixSymbol(string $id, int $leftBindingPower)
     {
         $this->registerSymbol($id, $leftBindingPower)->setLeftDenotationGetter(
             function (Symbol $self, Symbol $left) use ($leftBindingPower) {
@@ -154,11 +142,10 @@ class Parser
     /**
      * Register a right infix symbol.
      *
-     * @param  string  $id
-     * @param  int $leftBindingPower
-     * @return void
+     * @param string $id
+     * @param int $leftBindingPower
      */
-    protected function registerRightInfixSymbol($id, $leftBindingPower)
+    protected function registerRightInfixSymbol(string $id, int $leftBindingPower)
     {
         $this->registerSymbol($id, $leftBindingPower)->setLeftDenotationGetter(
             function (Symbol $self, Symbol $left) use ($leftBindingPower) {
@@ -172,11 +159,10 @@ class Parser
     /**
      * Register a prefix symbol.
      *
-     * @param  string  $id
-     * @param  int $leftBindingPower
-     * @return void
+     * @param string $id
+     * @param int $leftBindingPower
      */
-    protected function registerPrefixSymbol($id, $leftBindingPower)
+    protected function registerPrefixSymbol(string $id, int $leftBindingPower)
     {
         $this->registerSymbol($id, $leftBindingPower)->setNullDenotationGetter(
             function (Symbol $self) use ($leftBindingPower) {
@@ -190,19 +176,22 @@ class Parser
     /**
      * Register a symbol.
      *
-     * @param  string  $id
-     * @param  int $leftBindingPower
-     * @return Symbol
+     * @param string $id
+     * @param int $leftBindingPower
+     * @return WASP\I18n\Translator\Plural\Symbol
      */
-    protected function registerSymbol($id, $leftBindingPower = 0)
+    protected function registerSymbol(string $id, int $leftBindingPower = 0)
     {
-        if (isset($this->symbolTable[$id])) {
+        if (isset($this->symbolTable[$id]))
+        {
             $symbol = $this->symbolTable[$id];
             $symbol->leftBindingPower = max(
                 $symbol->leftBindingPower,
                 $leftBindingPower
             );
-        } else {
+        }
+        else
+        {
             $symbol = new Symbol($this, $id, $leftBindingPower);
             $this->symbolTable[$id] = $symbol;
         }
@@ -214,10 +203,12 @@ class Parser
      * Get a new symbol.
      *
      * @param string $id
+     * @return WASP\I18n\Translator\Plural\Symbol
      */
-    protected function getSymbol($id)
+    protected function getSymbol(string $id)
     {
-        if (!isset($this->symbolTable[$id])) {
+        if (!isset($this->symbolTable[$id]))
+        {}
             // Unkown symbol exception
         }
 
@@ -227,10 +218,10 @@ class Parser
     /**
      * Parse a string.
      *
-     * @param  string $string
-     * @return Symbol
+     * @param string $string
+     * @return WASP\I18n\Translator\Plural\Symbol
      */
-    public function parse($string)
+    public function parse(string $string)
     {
         $this->string = $string . "\0";
         $this->currentPos = 0;
@@ -243,9 +234,9 @@ class Parser
      * Parse an expression.
      *
      * @param  int $rightBindingPower
-     * @return Symbol
+     * @return WASP\I18n\Translator\Plural\Symbol
      */
-    public function expression($rightBindingPower = 0)
+    public function expression(int $rightBindingPower = 0)
     {
         $token = $this->currentToken;
         $this->currentToken = $this->getNextToken();
@@ -264,8 +255,7 @@ class Parser
     /**
      * Advance the current token and optionally check the old token id.
      *
-     * @param  string $id
-     * @return void
+     * @param string $id
      * @throws LogicException
      */
     public function advance($id = null)
@@ -287,12 +277,13 @@ class Parser
     protected function getNextToken()
     {
         while ($this->string[$this->currentPos] === ' ' || $this->string[$this->currentPos] === "\t")
-            $this->currentPos++;
+            ++$this->currentPos;
 
         $result = $this->string[$this->currentPos++];
-        $value  = null;
+        $value = null;
 
-        switch ($result) {
+        switch ($result)
+        {
             case '0':
             case '1':
             case '2':

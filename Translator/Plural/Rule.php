@@ -24,46 +24,40 @@ class Rule implements \Serializable
 {
     /**
      * Parser instance.
-     *
-     * @var Parser
      */
     protected static $parser;
 
     /**
      * Abstract syntax tree.
-     *
-     * @var array
      */
     protected $ast;
 
     /**
      * Number of plurals in this rule.
-     *
-     * @var int
      */
     protected $numPlurals;
 
     /**
      * Create a new plural rule.
      *
-     * @param  int $numPlurals
-     * @param  array   $ast
-     * @return Rule
+     * @param int $numPlurals
+     * @param array $ast
+     * @return WASP\I18n\Translator\Plural\Rule
      */
-    protected function __construct($numPlurals, array $ast)
+    protected function __construct(int $numPlurals, array $ast)
     {
         $this->numPlurals = $numPlurals;
-        $this->ast        = $ast;
+        $this->ast = $ast;
     }
 
     /**
      * Evaluate a number and return the plural index.
      *
-     * @param  int $number
+     * @param int $number
      * @return int
      * @throws OutOfRangeException
      */
-    public function evaluate($number)
+    public function evaluate(int $number)
     {
         $result = $this->evaluateAstPart($this->ast, abs((int) $number));
 
@@ -106,12 +100,12 @@ class Rule implements \Serializable
     /**
      * Evaluate a part of an ast.
      *
-     * @param  array   $ast
+     * @param  array $ast
      * @param  int $number
      * @return int
      * @throws LogicException
      */
-    protected function evaluateAstPart(array $ast, $number)
+    protected function evaluateAstPart(array $ast, int $number)
     {
         switch ($ast['id'])
         {
@@ -201,11 +195,11 @@ class Rule implements \Serializable
     /**
      * Create a new rule from a string.
      *
-     * @param  string $string
+     * @param string $string
      * @throws LogicException
-     * @return Rule
+     * @return WASP\I18n\Translator\Plural\Rule
      */
-    public static function fromString($string)
+    public static function fromString(string $string)
     {
         if (static::$parser === null)
             static::$parser = new Parser();
@@ -213,7 +207,7 @@ class Rule implements \Serializable
         if (!preg_match('(nplurals=(?P<nplurals>\d+))', $string, $match))
             throw new \LogicException(sprintf('Unknown or invalid parser rule: %s', $string));
 
-        $numPlurals = (int) $match['nplurals'];
+        $numPlurals = (int)$match['nplurals'];
 
         if (!preg_match('(plural=(?P<plural>[^;\n]+))', $string, $match))
             throw new \LogicException(sprintf('Unknown or invalid parser rule: %s', $string));
@@ -230,7 +224,7 @@ class Rule implements \Serializable
      * Theoretically we could just use the given Symbol, but that one is not
      * so easy to serialize and also takes up more memory.
      *
-     * @param  Symbol $symbol
+     * @param WASP\I18n\Translator\Plural\Symbol $symbol
      * @return array
      */
     protected static function createAst(Symbol $symbol)

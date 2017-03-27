@@ -25,11 +25,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace WASP\I18n
 {
+    use Locale;
+
     use WASP\Util\LoggerAwareStaticTrait;
     use WASP\I18n\Translator\Translator;
     use WASP\IO\Dir;
     use WASP\Util\Dictionary;
-    use Locale;
 
     /**
      * Translate provides the translation system for WASP.

@@ -60,7 +60,7 @@ class Translator
      * @param  string $locale
      * @return Translator Provides fluent interface
      */
-    public function setLocale($locale)
+    public function setLocale(string $locale)
     {
         $this->locale = $locale;
 
@@ -232,7 +232,7 @@ class Translator
      * @param string $textDomain
      * @return Translator Provides fluent interface
      */
-    public function addPattern($baseDir, $pattern, $textDomain = 'default')
+    public function addPattern(string $baseDir, string $pattern, string $textDomain = 'default')
     {
         if (!isset($this->patterns[$textDomain]))
             $this->patterns[$textDomain] = array();
@@ -250,10 +250,10 @@ class Translator
      *
      * @param string $textDomain
      * @param string $locale
-     * @throws \RuntimeException
+     * @throws RuntimeException
      * @return void
      */
-    protected function loadMessages($textDomain, $locale)
+    protected function loadMessages(string $textDomain, string $locale)
     {
         $result = $this->cache->get($textDomain, $locale);
         if ($result !== null)
@@ -268,11 +268,11 @@ class Translator
     /**
      * Load messages from patterns.
      *
-     * @param  string $textDomain
-     * @param  string $locale
+     * @param string $textDomain
+     * @param string $locale
      * @return bool
      */
-    protected function loadMessagesFromPatterns($textDomain, $locale)
+    protected function loadMessagesFromPatterns(string $textDomain, string $locale)
     {
         $messagesLoaded = false;
 
@@ -306,7 +306,7 @@ class Translator
      *
      * @return mixed
      */
-    public function getAllMessages($textDomain = 'default', $locale = null)
+    public function getAllMessages(string $textDomain = 'default', $locale = null)
     {
         $locale = $locale ?: $this->getLocale();
 

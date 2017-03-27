@@ -17,8 +17,6 @@
 
 namespace WASP\I18n\Translator\Plural;
 
-use Closure;
-
 /**
  * Parser symbol.
  *
@@ -31,88 +29,70 @@ class Symbol
 {
     /**
      * Parser instance.
-     *
-     * @var Parser
      */
     public $parser;
 
     /**
      * Node or token type name.
-     *
-     * @var string
      */
     public $id;
 
     /**
      * Left binding power (precedence).
-     *
-     * @var int
      */
     public $leftBindingPower;
 
     /**
      * Getter for null denotation.
-     *
-     * @var callable
      */
     protected $nullDenotationGetter;
 
     /**
      * Getter for left denotation.
-     *
-     * @var callable
      */
     protected $leftDenotationGetter;
 
     /**
      * Value used by literals.
-     *
-     * @var mixed
      */
     public $value;
 
     /**
      * First node value.
-     *
-     * @var Symbol
      */
     public $first;
 
     /**
      * Second node value.
-     *
-     * @var Symbol
      */
     public $second;
 
     /**
      * Third node value.
-     *
-     * @var Symbol
      */
     public $third;
 
     /**
      * Create a new symbol.
      *
-     * @param  Parser  $parser
-     * @param  string  $id
-     * @param  int $leftBindingPower
+     * @param Parser $parser
+     * @param string $id
+     * @param int $leftBindingPower
      */
-    public function __construct(Parser $parser, $id, $leftBindingPower)
+    public function __construct(Parser $parser, string $id, int $leftBindingPower)
     {
-        $this->parser               = $parser;
-        $this->id                   = $id;
-        $this->leftBindingPower     = $leftBindingPower;
+        $this->parser = $parser;
+        $this->id = $id;
+        $this->leftBindingPower = $leftBindingPower;
     }
 
     /**
      * Set the null denotation getter.
      *
-     * @param  Closure $getter
+     * @param callable $getter
      * @return Symbol
      */
-    public function setNullDenotationGetter(Closure $getter)
+    public function setNullDenotationGetter(callable $getter)
     {
         $this->nullDenotationGetter = $getter;
         return $this;
@@ -121,10 +101,10 @@ class Symbol
     /**
      * Set the left denotation getter.
      *
-     * @param  Closure $getter
+     * @param callable $getter
      * @return Symbol
      */
-    public function setLeftDenotationGetter(Closure $getter)
+    public function setLeftDenotationGetter(callable $getter)
     {
         $this->leftDenotationGetter = $getter;
         return $this;
@@ -141,7 +121,6 @@ class Symbol
         if ($this->nullDenotationGetter === null)
             throw new \LogicException(sprintf('Syntax error: %s', $this->id));
 
-        /** @var callable $function  */
         $function = $this->nullDenotationGetter;
         return $function($this);
     }
@@ -155,11 +134,9 @@ class Symbol
      */
     public function getLeftDenotation($left)
     {
-        if ($this->leftDenotationGetter === null) {
+        if ($this->leftDenotationGetter === null)
             throw new LogicException(sprintf('Unknown operator: %s', $this->id));
-        }
 
-        /** @var callable $function  */
         $function = $this->leftDenotationGetter;
         return $function($this, $left);
     }

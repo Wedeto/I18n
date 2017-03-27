@@ -26,7 +26,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace WASP\I18n;
 
 use Psr\Log\LogLevel;
-use WASP\Request;
 use WASP\IO\File;
 use WASP\Log\LogWriterInterface;
 use WASP\Log\Logger;

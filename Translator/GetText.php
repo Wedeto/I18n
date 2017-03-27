@@ -24,14 +24,10 @@ use WASP\I18n\Translator\Plural\Rule as PluralRule;
  */
 class GetText
 {
-    /**
-     * Current file pointer.
-     */
+    /** Current file pointer. */
     protected $file;
 
-    /**
-     * Whether the current file is little endian.
-     */
+    /** Whether the current file is little endian. */
     protected $littleEndian;
 
     /**
@@ -42,12 +38,12 @@ class GetText
      * @return TextDomain
      * @throws InvalidArgumentException
      */
-    public function load($locale, $filename)
+    public function load(string $locale, string $filename)
     {
         if (!is_file($filename) || !is_readable($filename))
             throw new \InvalidArgumentException(sprintf('Could not find or open file %s for reading', $filename));
 
-        $textDomain = new TextDomain();
+        $textDomain = new TextDomain;
         $this->file = fopen($filename, 'rb');
 
         // Verify magic number
@@ -77,8 +73,8 @@ class GetText
         }
 
         // Gather main information
-        $numStrings                   = $this->readInteger();
-        $originalStringTableOffset    = $this->readInteger();
+        $numStrings = $this->readInteger();
+        $originalStringTableOffset = $this->readInteger();
         $translationStringTableOffset = $this->readInteger();
 
         // Usually there follow size and offset of the hash table, but we have
@@ -92,11 +88,11 @@ class GetText
         // Read in all translations
         for ($current = 0; $current < $numStrings; ++$current)
         {
-            $sizeKey                 = $current * 2 + 1;
-            $offsetKey               = $current * 2 + 2;
-            $originalStringSize      = $originalStringTable[$sizeKey];
-            $originalStringOffset    = $originalStringTable[$offsetKey];
-            $translationStringSize   = $translationStringTable[$sizeKey];
+            $sizeKey = $current * 2 + 1;
+            $offsetKey = $current * 2 + 2;
+            $originalStringSize = $originalStringTable[$sizeKey];
+            $originalStringOffset = $originalStringTable[$offsetKey];
+            $translationStringSize = $translationStringTable[$sizeKey];
             $translationStringOffset = $translationStringTable[$offsetKey];
 
             $originalString = [''];
@@ -118,10 +114,8 @@ class GetText
                     array_shift($originalString);
 
                     foreach ($originalString as $string)
-                    {
                         if (!isset($textDomain[$string]))
                             $textDomain[$string] = '';
-                    }
                 }
                 else
                     $textDomain[$originalString[0]] = $translationString[0];
@@ -170,7 +164,7 @@ class GetText
      * @param  int $num
      * @return int
      */
-    protected function readIntegerList($num)
+    protected function readIntegerList(int $num)
     {
         if ($this->littleEndian)
             return unpack('V' . $num, fread($this->file, 4 * $num));
@@ -184,9 +178,9 @@ class GetText
      * @param bool $flag
      * @return self
      */
-    public function setUseIncludePath($flag = true)
+    public function setUseIncludePath(bool $flag = true)
     {
-        $this->useIncludePath = (bool)$flag;
+        $this->useIncludePath = $flag;
         return $this;
     }
 

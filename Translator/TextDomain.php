@@ -17,6 +17,8 @@
 
 namespace WASP\I18n\Translator;
 
+use JsonSerializable;
+
 use WASP\Util\Dictionary;
 use WASP\I18n\Translator\Plural\Rule as PluralRule;
 
@@ -26,7 +28,7 @@ use WASP\I18n\Translator\Plural\Rule as PluralRule;
 class TextDomain extends Dictionary
 {
     /** Plural rule */
-    protected $pluralRule;
+    protected $plural_rule;
 
     /**
      * Default plural rule shared between instances.
@@ -41,7 +43,7 @@ class TextDomain extends Dictionary
      */
     public function setPluralRule(PluralRule $rule)
     {
-        $this->pluralRule = $rule;
+        $this->plural_rule = $rule;
         return $this;
     }
 
@@ -51,12 +53,12 @@ class TextDomain extends Dictionary
      * @param  bool $fallbackToDefaultRule
      * @return PluralRule|null
      */
-    public function getPluralRule($fallbackToDefaultRule = true)
+    public function getPluralRule(bool $fallbackToDefaultRule = true)
     {
-        if ($this->pluralRule === null && $fallbackToDefaultRule)
+        if ($this->plural_rule === null && $fallbackToDefaultRule)
             return static::getDefaultPluralRule();
 
-        return $this->pluralRule;
+        return $this->plural_rule;
     }
 
     /**
@@ -66,7 +68,7 @@ class TextDomain extends Dictionary
      */
     public function hasPluralRule()
     {
-        return ($this->pluralRule !== null);
+        return $this->plural_rule !== null;
     }
 
     /**
@@ -122,7 +124,7 @@ class TextDomain extends Dictionary
     public function unserialize($serialized)
     {
         $data = unserialize($serialized);
-        $this->pluralRule = $data['pluralRule'];
+        $this->plural_rule = $data['plural_rule'];
         $this->values = $data['messages'];
     }
 
@@ -133,7 +135,7 @@ class TextDomain extends Dictionary
     public function jsonSerialize()
     {
         return array(
-            'pluralRule' => $this->pluralRule,
+            'plural_rule' => $this->plural_rule,
             'messages' => $this->values
         );
     }
