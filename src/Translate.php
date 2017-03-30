@@ -1,39 +1,43 @@
 <?php
 /*
-This is part of WASP, the Web Application Software Platform.
-It is published under the MIT Open Source License.
+This is part of Wedeto, the WEb DEvelopment TOolkit.
+It is published under the BSD 3-Clause License.
 
 Copyright 2017, Egbert van der Wal
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer. Redistributions in binary form
+must reproduce the above copyright notice, this list of conditions and the
+following disclaimer in the documentation and/or other materials provided with
+the distribution. Neither the name of Zend or Rogue Wave Software, nor the
+names of its contributors may be used to endorse or promote products derived
+from this software without specific prior written permission. THIS SOFTWARE IS
+PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 */
 
-namespace WASP\I18n
+namespace Wedeto\I18n
 {
     use Locale;
 
-    use WASP\Util\LoggerAwareStaticTrait;
-    use WASP\I18n\Translator\Translator;
-    use WASP\IO\DirReader;
-    use WASP\Util\Dictionary;
+    use Wedeto\Util\LoggerAwareStaticTrait;
+    use Wedeto\I18n\Translator\Translator;
+    use Wedeto\IO\DirReader;
+    use Wedeto\Util\Dictionary;
 
     /**
-     * Translate provides the translation system for WASP.
+     * Translate provides the translation system for Wedeto.
      * It has a easy to implement translation system to use in-line translations,
      * and uses a Translator based on Zend\\I18n\Translator to read GetText files
      * for more sophisticated translations.
@@ -346,7 +350,7 @@ namespace WASP\I18n
 namespace
 {
     /**
-     * @see WASP\I18n\Translate\translate
+     * @see Wedeto\I18n\Translate\translate
      */
     function t(string $msgid, array $values = array())
     {
@@ -354,7 +358,7 @@ namespace
     }
 
     /**
-     * @see WASP\I18n\Translate\translatePlural
+     * @see Wedeto\I18n\Translate\translatePlural
      */
     function tn(string $msgid, string $plural, int $n, array $values = array())
     {
@@ -362,7 +366,7 @@ namespace
     }
 
     /**
-     * @see WASP\I18n\Translate\translate
+     * @see Wedeto\I18n\Translate\translate
      */
     function td(string $msgid, string $domain, array $values = array())
     {
@@ -370,7 +374,7 @@ namespace
     }
 
     /**
-     * @see WASP\I18n\Translate\translatePlural
+     * @see Wedeto\I18n\Translate\translatePlural
      */
     function tdn(string $msgid, string $plural, int $n, string $domain, array $values = array())
     {
@@ -378,7 +382,7 @@ namespace
     }
 
     /**
-     * @see WASP\I18n\Translate\pushDomain
+     * @see Wedeto\I18n\Translate\pushDomain
      */
     function setTextDomain($dom)
     {
@@ -386,7 +390,7 @@ namespace
     }
 
     /**
-     * @see WASP\I18n\Translate\popDomain
+     * @see Wedeto\I18n\Translate\popDomain
      */
     function resetTextDomain()
     {
@@ -394,7 +398,7 @@ namespace
     }
 
     /**
-     * @see WASP\I18n\Translate\translateList
+     * @see Wedeto\I18n\Translate\translateList
      */
     function tl()
     {
@@ -402,7 +406,7 @@ namespace
     }
         
     /**
-     * @see WASP\I18n\Translate\setLanguageOrder
+     * @see Wedeto\I18n\Translate\setLanguageOrder
      */
     function tlSetLanguageOrder()
     {

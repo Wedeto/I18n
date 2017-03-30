@@ -1,34 +1,20 @@
-# WASP
-WASP (Web Application Software Platform).
+# Wedeto
+Wedeto (WEb DEvelopment TOolkit)
 
 # Requirements:
 
 php >= 7.0
 php-intl
-php-imagick
 php-mbstring
+Wedeto\Log
 
 # License
 
-Most of WASP is covered by the MIT license. Several parts are covered by different, yet compatible licenses.
-These parts are:
+Wedeto\I18n is published under the BSD 3-Clause License.
 
-* WASP\Util\Encoding
-Adapted from: ForceUTF8\Encoding - https://github.com/neitanod/forceutf8
-Copyright (c) 2008 Sebastián Grignol
-License: Revised BSD
+Wedeto\I18n\Translator is derived from:
 
-* WASP\Translator
+* Wedeto\I18n\Translator
 Adapted from: Zend Framework - Zend\Translator - https://framework.zend.com
-Copyright: (c) 2005-2015 Zend Technologies USA Inc. (http://www.zend.com)
-License: New BSD License
-
-* WASP\Mail
-Adapted from: Zend Framework - Zend\Mail - https://framework.zend.com
-Copyright: (c) 2005-2015 Zend Technologies USA Inc. (http://www.zend.com)
-License: New BSD License
-
-* WASP\Mail\Mime
-Adapted from: Zend Framework - Zend\Mime - https://framework.zend.com
 Copyright: (c) 2005-2015 Zend Technologies USA Inc. (http://www.zend.com)
 License: New BSD License
