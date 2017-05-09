@@ -27,14 +27,14 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 */
 
-namespace Wedeto\I18n
+namespace Wedeto\I18n;
 
 use DateTime;
 use DateTimeZone;
 use Locale;
 use NumberFormatter;
 
-use Wedeto\Util\Function as WF;
+use Wedeto\Util\Functions as WF;
 
 class Formatting
 {
@@ -213,4 +213,4 @@ class Formatting
     }
 }
 
-check_extension('intl', 'Locale');
+WF::check_extension('intl', 'Locale');

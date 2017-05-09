@@ -46,6 +46,7 @@ use Locale;
 
 use Wedeto\Util\LoggerAwareStaticTrait;
 use Wedeto\Util\Cache;
+use Wedeto\Util\Dictionary;
 
 /**
  * Translator.
@@ -76,7 +77,19 @@ class Translator
     public function __construct()
     {
         self::getLogger();
-        $this->cache = new Cache('translate');
+        $this->cache = new Dictionary;
+    }
+
+    /**
+     * Add a cache that will be used to load and save translations from
+     * all textdomains and locales.
+     * @param Cache $cache The cache to use
+     * @return Translator Provides fluent interface
+     */
+    public function setCache(Cache $cache)
+    {
+        $this->cache = $cache;
+        return $this;
     }
 
     /**
@@ -99,6 +112,9 @@ class Translator
      */
     public function getLocale()
     {
+        if ($this->locale === null)
+            $this->setLocale(Locale::getDefault());
+
         return $this->locale;
     }
 
@@ -108,7 +124,7 @@ class Translator
      * @param  string $locale
      * @return Translator Provides fluent interface
      */
-    public function setFallbackLocale($locale)
+    public function setFallbackLocale(string $locale)
     {
         $this->fallbackLocale = $locale;
 
@@ -153,10 +169,10 @@ class Translator
      * @param string $locale The locale for the translation
      * @return string The translated string
      */
-    public function translate($message, $textDomain = null, $locale = null)
+    public function translate(string $message, string $textDomain = null, string $locale = null)
     {
-        $locale = ($locale ?: $this->getLocale());
-        if ($locale === 'C')
+        $locale = $locale ?: $this->getLocale();
+        if ($locale === 'C' || $message === '')
             return $message;
 
         $textDomain = $textDomain ?: $this->getTextDomain();
@@ -195,7 +211,7 @@ class Translator
     public function translatePlural(string $singular, string $plural, int $number, string $textDomain = null, string $locale = null)
     {
         $locale = $locale ?: $this->getLocale();
-        if ($locale === 'C')
+        if ($locale === 'C' || $singular === '')
             return $number === 1 ? $singular : $plural;
 
         $textDomain = $textDomain ?: $this->getTextDomain();
@@ -235,7 +251,7 @@ class Translator
      * @param string $textDomain
      * @return string|null
      */
-    protected function getTranslatedMessage($message, $locale, $textDomain = 'default')
+    protected function getTranslatedMessage(string $message, string $locale, string $textDomain = 'default')
     {
         if (empty($message))
             return '';
@@ -243,10 +259,13 @@ class Translator
         if (!$this->cache->has($textDomain, $locale))
             $this->loadMessages($textDomain, $locale);
 
-        if ($this->cache->has($textDomain, $locale, $message))
-            return $this->cache->get($textDomain, $locale, $message);
+        if ($this->cache->has($textDomain, $locale))
+        {
+            $td = $this->cache->get($textDomain, $locale);
 
-        return;
+            if ($td->has($message))
+                return $td->get($message);
+        }
     }
 
     /**
@@ -287,7 +306,7 @@ class Translator
         $messagesLoaded = $this->loadMessagesFromPatterns($textDomain, $locale);
 
         if (!$messagesLoaded)
-            $this->cache->put($textDomain, $locale, array());
+            $this->cache->set($textDomain, $locale, new TextDomain);
     }
 
     /**
@@ -314,13 +333,29 @@ class Translator
                 if ($this->cache->has($textDomain, $locale))
                     $this->cache->get($textDomain, $locale)->merge($loader->load($locale, $filename));
                 else
-                    $this->cache->put($textDomain, $locale, $loader->load($locale, $filename));
+                    $this->cache->set($textDomain, $locale, $loader->load($locale, $filename));
 
                 $messagesLoaded = true;
             }
         }
 
         return $messagesLoaded;
+    }
+
+    /** 
+     * Inject custom loaded messages
+     * @param string $textDomain The text domain
+     * @param TextDomain $messages The messages to inject
+     * @param string $locale The locale for the messages
+     * @return Translator Provides fluent interface
+     */
+    public function injectMessages(string $textDomain, TextDomain $messages, string $locale)
+    {
+        if ($this->cache->has($textDomain, $locale))
+            $this->cache->get($textDomain, $locale)->merge($messages);
+        else
+            $this->cache->set($textDomain, $locale, $messages);
+        return $this;
     }
 
     /**
@@ -331,7 +366,7 @@ class Translator
      *
      * @return mixed
      */
-    public function getAllMessages(string $textDomain = 'default', $locale = null)
+    public function getAllMessages(string $textDomain = 'default', string $locale = null)
     {
         $locale = $locale ?: $this->getLocale();
 

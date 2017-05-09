@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Wedeto\I18n\Translator\Loader\GetText was adapted from
+Wedeto\I18n\Translator\GetText was adapted from
 Zend\I18n\Translator\Loader\Gettext.
 The modifications are: Copyright 2017, Egbert van der Wal.
 
@@ -148,7 +148,7 @@ class GetText
         }
 
         // Read header entries
-        if (array_key_exists('', $textDomain))
+        if (isset($textDomain['']))
         {
             $rawHeaders = explode("\n", trim($textDomain['']));
 
@@ -157,7 +157,9 @@ class GetText
                 list($header, $content) = explode(':', $rawHeader, 2);
 
                 if (trim(strtolower($header)) === 'plural-forms')
+                {
                     $textDomain->setPluralRule(PluralRule::fromString($content));
+                }
             }
 
             unset($textDomain['']);
@@ -195,27 +197,5 @@ class GetText
             return unpack('V' . $num, fread($this->file, 4 * $num));
 
         return unpack('N' . $num, fread($this->file, 4 * $num));
-    }
-
-    /**
-     * Indicate whether or not to use the include_path to resolve translation files
-     *
-     * @param bool $flag
-     * @return self
-     */
-    public function setUseIncludePath(bool $flag = true)
-    {
-        $this->useIncludePath = $flag;
-        return $this;
-    }
-
-    /**
-     * Are we using the include_path to resolve translation files?
-     *
-     * @return bool
-     */
-    public function useIncludePath()
-    {
-        return $this->useIncludePath;
     }
 }

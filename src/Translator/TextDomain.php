@@ -130,7 +130,7 @@ class TextDomain extends Dictionary
         elseif ($textDomain->hasPluralRule())
             $this->setPluralRule($textDomain->getPluralRule());
 
-        parent::addAll($textDomain->messages);
+        parent::addAll($textDomain);
         return $this;
     }
 

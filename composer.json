@@ -4,9 +4,12 @@
     "description": "Wedeto Platform - Internationalization",
     "homepage": "https://wedeto.net/",
     "require": {
-        "Wedeto/Util": "@dev",
-        "Wedeto/Log": "@dev",
+        "Wedeto/Util": ">=0.9.4",
+        "Wedeto/Log": "0.9.*",
         "php": ">=7.0.0"
+    },
+    "require-dev": {
+        "mikey179/vfsStream": "~1"
     },
     "autoload": {
         "psr-4": {

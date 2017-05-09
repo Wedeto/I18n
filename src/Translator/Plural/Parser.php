@@ -165,23 +165,6 @@ class Parser
     }
 
     /**
-     * Register a right infix symbol.
-     *
-     * @param string $id
-     * @param int $leftBindingPower
-     */
-    protected function registerRightInfixSymbol(string $id, int $leftBindingPower)
-    {
-        $this->registerSymbol($id, $leftBindingPower)->setLeftDenotationGetter(
-            function (Symbol $self, Symbol $left) use ($leftBindingPower) {
-                $self->first  = $left;
-                $self->second = $self->parser->expression($leftBindingPower - 1);
-                return $self;
-            }
-        );
-    }
-
-    /**
      * Register a prefix symbol.
      *
      * @param string $id
@@ -207,20 +190,8 @@ class Parser
      */
     protected function registerSymbol(string $id, int $leftBindingPower = 0)
     {
-        if (isset($this->symbolTable[$id]))
-        {
-            $symbol = $this->symbolTable[$id];
-            $symbol->leftBindingPower = max(
-                $symbol->leftBindingPower,
-                $leftBindingPower
-            );
-        }
-        else
-        {
-            $symbol = new Symbol($this, $id, $leftBindingPower);
-            $this->symbolTable[$id] = $symbol;
-        }
-
+        $symbol = new Symbol($this, $id, $leftBindingPower);
+        $this->symbolTable[$id] = $symbol;
         return $symbol;
     }
 
@@ -235,7 +206,6 @@ class Parser
         if (!isset($this->symbolTable[$id]))
         {}
             // Unkown symbol exception
-        }
 
         return clone $this->symbolTable[$id];
     }

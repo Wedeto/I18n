@@ -31,7 +31,7 @@ namespace Wedeto\I18n;
 
 use Psr\Log\LogLevel;
 use Wedeto\Util\Hook;
-use Wedeto\Log\LogWriterInterface;
+use Wedeto\Log\Writer\AbstractWriter;
 use Wedeto\Log\Logger;
 
 /**
@@ -41,7 +41,7 @@ use Wedeto\Log\Logger;
  * 
  * Take note: the file is not aggrated and duplicates may occur.
  */
-class TranslateLogger implements LogWriterInterface
+class TranslateLogger extends AbstractWriter
 {
     /** The pattern of the POT file */
     private $pattern;
@@ -66,7 +66,7 @@ class TranslateLogger implements LogWriterInterface
      * @param array $context Should contain information about the untranslated string:
      *                       msgid, msgid_plural, locale and domain.
      */
-    public function write(string $level, $message, array $context)
+    public function write(string $level, string $message, array $context)
     {
         if (!substr($message, 0, 12) == "Untranslated")
             return;
@@ -111,6 +111,12 @@ class TranslateLogger implements LogWriterInterface
 
         $file = sprintf($this->pattern, $domain, $locale);
 
+        if (!file_exists($file))
+        {
+            touch($file);
+            Hook::execute("Wedeto.IO.FileCreated", ['filename' => $file]);
+        }
+
         $fh = fopen($file, "a");
         fprintf($fh, "#. Untranslated string at %s\n", date("Y-m-d H:i:s"));
 
@@ -137,7 +143,5 @@ class TranslateLogger implements LogWriterInterface
 
         fprintf($fh, "\n");
         fclose($fh);
-
-        Hook::execute("Wedeto.IO.FileCreated", ['filename' => $file]);
     }
 }

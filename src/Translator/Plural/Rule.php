@@ -105,7 +105,7 @@ class Rule implements \Serializable
         return serialize($data);
     }
 
-    public function unserialize(string $data)
+    public function unserialize($data)
     {
         $data = unserialize($data);
         $this->numPlurals = $data['numPlurals'];

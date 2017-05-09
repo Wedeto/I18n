@@ -42,6 +42,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\I18n\Translator\Plural;
 
+use LogicException;
+
 /**
  * Parser symbol.
  *
