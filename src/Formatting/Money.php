@@ -32,6 +32,8 @@ namespace Wedeto\I18n\Formatting;
 use NumberFormatter;
 use Wedeto\I18n\Locale;
 
+use Wedeto\Util\Functions as WF;
+
 /**
  * Format monetary numbers
  */
