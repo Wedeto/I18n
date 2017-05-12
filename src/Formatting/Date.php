@@ -31,179 +31,219 @@ namespace Wedeto\I18n;
 
 use DateTime;
 use DateTimeZone;
-use Locale;
-use NumberFormatter;
+use IntlDateFormatter;
 
 use Wedeto\Util\Functions as WF;
+use Wedeto\Util\Hook;
+use Wedeto\I18n\Locale;
 
-class Formatter
+/**
+ * Formats dates and times using the locale aware IntlDateFormatter
+ */
+class Date
 {
+    /** Represent a date */
     const DATE = 1;
+    
+    /** Represent a time */
     const TIME = 2;
+
+    /** Represent a date and time */
     const DATETIME = 3;
 
-    private static $init = false;
+    /** The locale used for formatting */
+    protected $locale;
 
-    private $locale;
-    private $number_formatter = null;
-    private $currency_formatter = null;
-    private $date_format = null;
-    private $datetime_format = null;
-    private $time_format = null;
-    private $timezone = null;
-    private $thousand_separator;
-    private $decimal_point;
+    /** The formatter (IntlDateFormatter) used for formatting and parsing */
+    protected $date_formatter;
 
-    public function __construct($locale)
+    /** The date format used by default - ISO8601 */
+    protected $date_format = 'yyyy-MM-dd';
+
+    /** The datetime format used by default - ISO8601 */
+    protected $datetime_format = 'yyyy-MM-dd HH:mm:ss';
+
+    /** The time format used by default - ISO8601 */
+    protected $time_format = 'HH:mm:ss';
+
+    /** The timezone used by the parsed and formatter */
+    protected $timezone = null;
+
+    /**
+     * Construct the formatter.
+     * @param Locale $locale The locale to use for formatting and parsing
+     */
+    public function __construct(Locale $locale)
     {
-        $this->locale = Locale::canonicalize($locale);
-        $this->date_format = self::defaultDateFormat();
-        $this->time_format = self::defaultTimeFormat();
-        $this->datetime_format = self::defaultDateTimeFormat();
-        $this->timezone = self::defaultTimezone();
-        $this->number_formatter = new NumberFormatter($this->locale, NumberFormatter::DECIMAL);
-        $pattern = trim($this->number_formatter->getPattern(), "#");
-        $this->thousand_separator = substr($pattern, 0, 1);
-        $this->decimal_point = substr($pattern, -1, 1);
+        $this->locale = $locale;
+        $this->date_formatter = new IntlDateFormatter($locale->getLocale());
+
+        $tz = date_default_timezone_get();
+        if (empty($tz))
+            $tz = IntlTimeZone::createDefault();
+
+        $this->setTimeZone($tz);
+
+        // Call the hook to allow adjusting default values
+        Hook::execute("Wedeto.I18n.Formatting.Date.Create", ['date_formatter' => $this]);
     }
 
-    public static function getDefaultCurrency()
+    /**
+     * Format a date, time or datetime according to the configured format
+     * @param mixed $date The date to format. Can be a DateTimeInterface object,
+     *                    a IntlCalendar object, an int representing the seconds since the epoch,
+     *                    or a string representing any parseable date by PHP's DateTime object.
+     * @param int $type The formatting type. One of Date::DATE, Date::TIME or Date::DATETIME.
+     * @return string The formatted string
+     */
+    public function format($date, $type = Date::DATE)
     {
-        $cfg = Config::getConfig();
-        return $cfg->dget('localization', 'currency', 'EUR');
-    }
-    
-    public static function defaultTimezone()
-    {
-        $cfg = Config::getConfig();
-        return new DateTimeZone($cfg->dget('localization', 'timezone', 'UTC'));
-    }
+        if (WF::is_int_val($date))
+            $date = new DateTime("@" . $date);
+        elseif (is_string($date))
+            $date = new DateTime($date);
 
-    public function defaultDateFormat()
-    {
-        $cfg = Config::getConfig();
-        return $cfg->dget('localization', 'dateformat', 'd/m/Y');
-    }
+        if (!$date instanceof DateTimeInterface)
+            throw new I18nException("Invalid date: " . WF::str($date));
 
-    public function defaultDateTimeFormat()
-    {
-        $cfg = Config::getConfig();
-        return $cfg->dget('localization', 'dateformat', 'd/m/Y H:i:s');
-    }
-
-    public function defaultTimeFormat()
-    {
-        $cfg = Config::getConfig();
-        return $cfg->dget('localization', 'dateformat', 'H:i:s');
-    }
-
-    public function formatNumber($number, $decimals = false)
-    {
-        if ($decimals !== false)
-            return number_format($number, $decimals, $this->thousand_separator, $this->decimal_point);
-
-        return $this->number_formatter->format($number);
-    }
-
-    public function parseNumber($str)
-    {
-        return $this->number_formatter->parse($number);
-    }
-
-    public function formatCurrency($number, $currency = null)
-    {
-        if ($this->currency_formatter === null)
-            $this->currency_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
-        if ($currency === null)
-            $currency = self::defaultCurrency();
-        return $this->currency_formatter->formatCurrency($number, $currency);
-    }
-
-    public function parseCurrency($str, $currency = null)
-    {
-        if ($this->currency_formatter === null)
-            $this->currency_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
-        if ($currency === null)
-            $currency = self::defaultCurrency();
-
-        return $this->currency_formatter->parseCurrency($str, $currency);
-    }
-
-    public function formatDate($date, $type = I18N::DATE)
-    {
-        if (!($date instanceof DateTime))
-        {
-            if (WF::is_int_val($date))
-                $date = new DateTime("@" . $date);
-            elseif (is_string($date))
-                $date = new DateTime($date);
-        }
-
-        $date->setTimeZone($this->timezone);
+        $date = IntlCalendar::fromDateTime($date);
 
         switch ($type)
         {
-            case I18N::DATE:
-                return $date->format($this->date_format);
-            case I18N::TIME:
-                return $date->format($this->time_format);
-            case I18N::DATETIME:
+            case Date::DATE:
+                $this->date_formatter->setPattern($this->date_format);
+                break;
+            case Date::TIME:
+                $this->date_formatter->setPattern($this->time_format);
+                break;
+            case Date::DATETIME:
             default:
-                return $date->format($this->datetime_format);
+                $this->date_formatter->setPattern($this->datetime_format);
+                break;
         }
-    }
-    
-    public function parseDate($datestr, $type = I18N::DATETIME)
-    {
-        switch ($type)
-        {
-            case I18N::DATE:
-                return DateTime::createFromFormat($this->date_format);
-            case I18N::DATETIME:
-                return DateTime::createFromFormat($this->datetime_format);
-            case I18N::TIME:
-                return DateTime::createFromFormat($this->time_format);
-            default:
-                throw new \DomainException("Invalid date type: $type");
-        }
+        return $this->date_formatter->format($date);
     }
 
+    /**
+     * Format the argument as a date
+     * @param mixed $date The date to format
+     * @return string The string representation
+     * @see Date::format
+     */
+    public function formatDate($date)
+    {
+        return $this->format($date, Date::DATE);
+    }
+
+    /**
+     * Format the argument as a time
+     * @param mixed $date The date to format
+     * @return string The string representation
+     * @see Date::format
+     */
+    public function formatTime($date)
+    {
+        return $this->format($date, Date::TIME);
+    }
+
+    /**
+     * Format the argument as a DateTime
+     * @param mixed $date The date to format
+     * @return string The string representation
+     * @see Date::format
+     */
+    public function formatDateTime($date)
+    {
+        return $this->format($date, Date::DATETIME);
+    }
+    
+    /**
+     * Parse a date, time or datetime according to the configured format.
+     * @param string $datestr The string to parse
+     * @param int $type One of Date::DATE, Date::TIME or Date::DATETIME
+     * @return DateTime The parsed DateTime object
+     */
+    public function parse($datestr, $type = Date::DATETIME)
+    {
+        $dt = null;
+        switch ($type)
+        {
+            case Date::DATE:
+                $dt = DateTime::createFromFormat($this->date_format);
+                break;
+            case Date::DATETIME:
+                $dt = DateTime::createFromFormat($this->datetime_format);
+                break;
+            case Date::TIME:
+                $dt = DateTime::createFromFormat($this->time_format);
+                break;
+            default:
+                throw new \DomainException("Invalid date type: " . WF::str($type));
+        }
+        $date = new DateTime("@" . $dt);
+        $date->setTimeZone($this->timezone->toDateTimeZone());
+        return $date;
+    }
+
+    /**
+     * Change the time zone for this formatter
+     * @param mixed $tz A DateTimeZone object or a string representing a time zone
+     * @return Date Provides fluent interface
+     */
     public function setTimezone($tz)
     {
-        if (!($tz instanceof DateTimeZone))
-            $tz = new DateTimeZone($tz);
+        if ($tz instanceof DateTimeZone)
+            $tz = IntlTimeZone::fromDateTimeZone($tz);
+        elseif (is_string($tz))
+            $tz = IntlTimeZone::createTimeZone($tz);
+        else
+            throw new I18nException("Invalid time zone: " . $tz);
 
         $this->timezone = $tz;
+        $this->date_formatter->setTimeZone($tz);
         return $this;
     }
 
+    /**
+     * @return IntlDateTimeZone Return the currently configured time zone
+     */
     public function getTimezone()
     {
         return $this->timezone;
     }
 
-    public function setCurrency($currency)
-    {
-        $this->currency = strtoupper($currency);
-        return $this;
-    }
-
-    public function getCurrency()
-    {
-        return $this->currency;
-    }
-
+    /**
+     * Set the date format used in parsing and formatting dates and times.
+     * 
+     * Since the Intl extension is used, this follows the ICU notation, not
+     * PHP's native Date format. See documentation at:
+     *
+     * http://userguide.icu-project.org/formatparse/datetime#TOC-Date-Time-Format-Syntax
+     * 
+     * @param string $fmt The format to sue
+     * @param int $type One of Date::DATE, Date::TIME or Date::DATETIME,
+     *                  specifying what format to set
+     * @return Date Provides fluent interface
+     */
     public function setDateFormat($fmt, $type)
     {
+        // Validate the pattern
+        $cur = $this->date_formatter->getPattern();
+        if (!$this->date_formatter->setPattern($fmt))
+        {
+            $this->date_formatter->setPattern($cur);
+            throw new I18nException("Invalid date/time pattern: " . WF::str($fmt));
+        }
+
         switch ($type)
         {
-            case I18N::DATE:
+            case Date::DATE:
                 $this->date_format = $fmt;
                 break;
-            case I18N::TIME:
+            case Date::TIME:
                 $this->time_format = $fmt;
                 break;
-            case I18N::DATETIME:
+            case Date::DATETIME:
                 $this->datetime_format = $fmt;
                 break;
             default:
@@ -213,4 +253,4 @@ class Formatter
     }
 }
 
-WF::check_extension('intl', 'Locale');
+WF::check_extension('intl', 'IntlDateFormatter');

@@ -77,8 +77,9 @@ class Number
     {
         if ($decimals !== null)
         {
-            // NumberFormatter doesn't provide a way to limit the amount of decimals on the fly, only by changing
-            // the pattern explicitly. number_format is an easier way to accomplish this.
+            // NumberFormatter doesn't provide a way to limit the amount of
+            // decimals on the fly, only by changing the pattern explicitly.
+            // number_format is an easier way to accomplish this.
             return number_format($number, $decimals, $this->thousand_separator, $this->decimal_point);
         }
 

@@ -108,3 +108,5 @@ class Money
         return $this->currency;
     }
 }
+
+WF::check_extension('intl', 'NumberFormatter');
