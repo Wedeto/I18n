@@ -27,15 +27,19 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 */
 
-namespace Wedeto\I18n;
+namespace Wedeto\I18n\Formatting;
 
 use DateTime;
 use DateTimeZone;
+use DateTimeInterface;
 use IntlDateFormatter;
+use IntlTimeZone;
+use IntlCalendar;
 
 use Wedeto\Util\Functions as WF;
 use Wedeto\Util\Hook;
 use Wedeto\I18n\Locale;
+use Wedeto\I18n\I18nException;
 
 /**
  * Formats dates and times using the locale aware IntlDateFormatter
@@ -76,7 +80,7 @@ class Date
     public function __construct(Locale $locale)
     {
         $this->locale = $locale;
-        $this->date_formatter = new IntlDateFormatter($locale->getLocale());
+        $this->date_formatter = new IntlDateFormatter($locale->getLocale(), null, null);
 
         $tz = date_default_timezone_get();
         if (empty($tz))
@@ -169,17 +173,19 @@ class Date
         switch ($type)
         {
             case Date::DATE:
-                $dt = DateTime::createFromFormat($this->date_format);
+                $this->date_formatter->setPattern($this->date_format);
                 break;
             case Date::DATETIME:
-                $dt = DateTime::createFromFormat($this->datetime_format);
+                $this->date_formatter->setPattern($this->datetime_format);
                 break;
             case Date::TIME:
-                $dt = DateTime::createFromFormat($this->time_format);
+                $this->date_formatter->setPattern($this->time_format);
                 break;
             default:
                 throw new \DomainException("Invalid date type: " . WF::str($type));
         }
+
+        $dt = $this->date_formatter->parse($datestr);
         $date = new DateTime("@" . $dt);
         $date->setTimeZone($this->timezone->toDateTimeZone());
         return $date;
