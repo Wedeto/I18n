@@ -27,7 +27,54 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 */
 
-namespace Wedeto\I18n;
+namespace Wedeto\I18n\Formatting;
 
-class I18nException extends \RuntimeException
-{}
+use DateTime;
+use DateTimeZone;
+use Locale;
+use NumberFormatter;
+
+use Wedeto\Util\Functions as WF;
+use Wedeto\I18n\WLocale;
+
+class Money
+{
+    private $locale;
+    private $currency_formatter = null;
+    private $thousand_separator;
+    private $decimal_point;
+    private $currency;
+
+    public function __construct(string $locale, $currency = "€")
+    {
+        $this->currency_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
+        $this->currency = $currency;
+        $this->locale = $locale;
+    }
+
+    public function format(float $number, $currency = null)
+    {
+        $currency = $currency ?: $this->getCurrency();
+        return $this->currency_formatter->formatCurrency($number, $currency);
+    }
+
+    public function parse(string $str, $currency = null)
+    {
+        if ($this->currency_formatter === null)
+            $this->currency_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
+
+        $currency = $currency ?: $this->getCurrency();
+        return $this->currency_formatter->parseCurrency($str, $currency);
+    }
+
+    public function setCurrency(string $currency)
+    {
+        $this->currency = strtoupper($currency);
+        return $this;
+    }
+
+    public function getCurrency()
+    {
+        return $this->currency;
+    }
+}

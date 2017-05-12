@@ -36,7 +36,7 @@ use NumberFormatter;
 
 use Wedeto\Util\Functions as WF;
 
-class Formatting
+class Formatter
 {
     const DATE = 1;
     const TIME = 2;
@@ -67,7 +67,7 @@ class Formatting
         $this->decimal_point = substr($pattern, -1, 1);
     }
 
-    public static function defaultCurrency()
+    public static function getDefaultCurrency()
     {
         $cfg = Config::getConfig();
         return $cfg->dget('localization', 'currency', 'EUR');
