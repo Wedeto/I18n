@@ -29,50 +29,80 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\I18n\Formatting;
 
-use DateTime;
-use DateTimeZone;
-use Locale;
 use NumberFormatter;
+use Wedeto\I18n\Locale;
 
-use Wedeto\Util\Functions as WF;
-use Wedeto\I18n\WLocale;
-
+/**
+ * Format monetary numbers
+ */
 class Money
 {
+    /** The locale in use */
     private $locale;
+
+    /** The currency NumberFormatter object */
     private $currency_formatter = null;
-    private $thousand_separator;
-    private $decimal_point;
+
+    /** The currency used for formatting */
     private $currency;
 
-    public function __construct(string $locale, $currency = "€")
+    /**
+     * Create a formatter
+     * @param Locale $locale The locale used for formatting
+     * @param string $currency The currency
+     */
+    public function __construct(Locale $locale, string $currency = "€")
     {
-        $this->currency_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
-        $this->currency = $currency;
         $this->locale = $locale;
+        $this->currency_formatter = new NumberFormatter($this->locale->getLocale(), NumberFormatter::CURRENCY);
+        $this->currency = $currency;
     }
 
+    /**
+     * Format a number as money
+     *
+     * @param float $number The amount to format
+     * @param string $currency The currency to use. When omitted, the default is used
+     * @return string The formatted money string
+     */
     public function format(float $number, $currency = null)
     {
         $currency = $currency ?: $this->getCurrency();
         return $this->currency_formatter->formatCurrency($number, $currency);
     }
 
+    /**
+     * Parse a money string into an number
+     * @param string $str The string to parse
+     * @param string $currency The currency unit
+     * @return double The parsed currency
+     */
     public function parse(string $str, $currency = null)
     {
         if ($this->currency_formatter === null)
             $this->currency_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
 
         $currency = $currency ?: $this->getCurrency();
-        return $this->currency_formatter->parseCurrency($str, $currency);
+        $amount = $this->currency_formatter->parseCurrency($str, $currency);
+        if ($amount === false)
+            throw new \InvalidArgumentException("Cannot parse value: " . $str);
+        return $amount;
     }
 
+    /**
+     * Set the default currency for this object
+     * @param string $currency The currency to set
+     * @return Money Provides fluent interface
+     */
     public function setCurrency(string $currency)
     {
         $this->currency = strtoupper($currency);
         return $this;
     }
 
+    /**
+     * @return string The currency currency in use
+     */
     public function getCurrency()
     {
         return $this->currency;

@@ -29,188 +29,71 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\I18n;
 
-use DateTime;
-use DateTimeZone;
-use Locale;
 use NumberFormatter;
 
+use Wedeto\I18n\Locale;
 use Wedeto\Util\Functions as WF;
 
-class Formatter
+/**
+ * Format and parse numbers according to a specific locale
+ */
+class Number
 {
-    const DATE = 1;
-    const TIME = 2;
-    const DATETIME = 3;
-
-    private static $init = false;
-
+    /** The locale to use */
     private $locale;
+
+    /** The number formatter object */
     private $number_formatter = null;
-    private $currency_formatter = null;
-    private $date_format = null;
-    private $datetime_format = null;
-    private $time_format = null;
-    private $timezone = null;
+
+    /** The thousand separator */
     private $thousand_separator;
+
+    /** The decimal point */
     private $decimal_point;
 
-    public function __construct($locale)
+    /**
+     * Create the object based on the provided locale
+     * @param Locale $locale The locale to use
+     */
+    public function __construct(Locale $locale)
     {
-        $this->locale = Locale::canonicalize($locale);
-        $this->date_format = self::defaultDateFormat();
-        $this->time_format = self::defaultTimeFormat();
-        $this->datetime_format = self::defaultDateTimeFormat();
-        $this->timezone = self::defaultTimezone();
-        $this->number_formatter = new NumberFormatter($this->locale, NumberFormatter::DECIMAL);
+        $this->locale = $locale;
+        $this->number_formatter = new NumberFormatter($this->locale->getLocale(), NumberFormatter::DECIMAL);
+
+        // Extract the thousand separator and decimal point from the number formatter
         $pattern = trim($this->number_formatter->getPattern(), "#");
         $this->thousand_separator = substr($pattern, 0, 1);
         $this->decimal_point = substr($pattern, -1, 1);
     }
 
-    public static function getDefaultCurrency()
+    /**
+     * Format the provided number.
+     * 
+     * @param numeric $number The number to format
+     * @param int $decimals The amount of decimals to show. When omitted, all decimals are used
+     * @return string The formatted string
+     */
+    public function format($number, int $decimals = null)
     {
-        $cfg = Config::getConfig();
-        return $cfg->dget('localization', 'currency', 'EUR');
-    }
-    
-    public static function defaultTimezone()
-    {
-        $cfg = Config::getConfig();
-        return new DateTimeZone($cfg->dget('localization', 'timezone', 'UTC'));
-    }
-
-    public function defaultDateFormat()
-    {
-        $cfg = Config::getConfig();
-        return $cfg->dget('localization', 'dateformat', 'd/m/Y');
-    }
-
-    public function defaultDateTimeFormat()
-    {
-        $cfg = Config::getConfig();
-        return $cfg->dget('localization', 'dateformat', 'd/m/Y H:i:s');
-    }
-
-    public function defaultTimeFormat()
-    {
-        $cfg = Config::getConfig();
-        return $cfg->dget('localization', 'dateformat', 'H:i:s');
-    }
-
-    public function formatNumber($number, $decimals = false)
-    {
-        if ($decimals !== false)
+        if ($decimals !== null)
+        {
+            // NumberFormatter doesn't provide a way to limit the amount of decimals on the fly, only by changing
+            // the pattern explicitly. number_format is an easier way to accomplish this.
             return number_format($number, $decimals, $this->thousand_separator, $this->decimal_point);
+        }
 
         return $this->number_formatter->format($number);
     }
 
-    public function parseNumber($str)
+    /**
+     * Parse a provided numeric string, locale aware
+     * @param string $str The string to parse
+     * @param numeric The parsed number
+     */
+    public function parse($str)
     {
         return $this->number_formatter->parse($number);
     }
-
-    public function formatCurrency($number, $currency = null)
-    {
-        if ($this->currency_formatter === null)
-            $this->currency_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
-        if ($currency === null)
-            $currency = self::defaultCurrency();
-        return $this->currency_formatter->formatCurrency($number, $currency);
-    }
-
-    public function parseCurrency($str, $currency = null)
-    {
-        if ($this->currency_formatter === null)
-            $this->currency_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
-        if ($currency === null)
-            $currency = self::defaultCurrency();
-
-        return $this->currency_formatter->parseCurrency($str, $currency);
-    }
-
-    public function formatDate($date, $type = I18N::DATE)
-    {
-        if (!($date instanceof DateTime))
-        {
-            if (WF::is_int_val($date))
-                $date = new DateTime("@" . $date);
-            elseif (is_string($date))
-                $date = new DateTime($date);
-        }
-
-        $date->setTimeZone($this->timezone);
-
-        switch ($type)
-        {
-            case I18N::DATE:
-                return $date->format($this->date_format);
-            case I18N::TIME:
-                return $date->format($this->time_format);
-            case I18N::DATETIME:
-            default:
-                return $date->format($this->datetime_format);
-        }
-    }
-    
-    public function parseDate($datestr, $type = I18N::DATETIME)
-    {
-        switch ($type)
-        {
-            case I18N::DATE:
-                return DateTime::createFromFormat($this->date_format);
-            case I18N::DATETIME:
-                return DateTime::createFromFormat($this->datetime_format);
-            case I18N::TIME:
-                return DateTime::createFromFormat($this->time_format);
-            default:
-                throw new \DomainException("Invalid date type: $type");
-        }
-    }
-
-    public function setTimezone($tz)
-    {
-        if (!($tz instanceof DateTimeZone))
-            $tz = new DateTimeZone($tz);
-
-        $this->timezone = $tz;
-        return $this;
-    }
-
-    public function getTimezone()
-    {
-        return $this->timezone;
-    }
-
-    public function setCurrency($currency)
-    {
-        $this->currency = strtoupper($currency);
-        return $this;
-    }
-
-    public function getCurrency()
-    {
-        return $this->currency;
-    }
-
-    public function setDateFormat($fmt, $type)
-    {
-        switch ($type)
-        {
-            case I18N::DATE:
-                $this->date_format = $fmt;
-                break;
-            case I18N::TIME:
-                $this->time_format = $fmt;
-                break;
-            case I18N::DATETIME:
-                $this->datetime_format = $fmt;
-                break;
-            default:
-                throw new \DomainException("Invalid date type: $type");
-        }
-        return $this;
-    }
 }
 
-WF::check_extension('intl', 'Locale');
+WF::check_extension('intl', 'NumberFormatter');
