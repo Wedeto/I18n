@@ -30,6 +30,11 @@ namespace Wedeto\I18n\Formatting;
 use PHPUnit\Framework\TestCase;
 use Wedeto\I18n\Locale;
 
+use DateTimeZone;
+use IntlTimeZone;
+
+use Wedeto\I18n\I18nException;
+
 class DateTest extends TestCase
 {
     public function getDataSet()
@@ -85,16 +90,124 @@ class DateTest extends TestCase
 
                 for ($i = 0; $i < count($formats); ++$i)
                 {
+                    $this->assertEquals($df->format($dt, Date::DATETIME), $df->formatDateTime($dt));
+                    $this->assertEquals($df->format($dt, Date::DATE), $df->formatDate($dt));
+                    $this->assertEquals($df->format($dt, Date::TIME), $df->formatTime($dt));
+
                     $df->setDateFormat($formats[$i], Date::DATETIME);
-                    $str = $df->format($dt, Date::DATETIME);
-                    $this->assertEquals($representations[$i], $str, "Asserting that $stamp when formatted in representation $i yields {$representations[$i]}");
+                    $df->setDateFormat($formats[$i], Date::DATE);
+                    $df->setDateFormat($formats[$i], Date::TIME);
+                    $str_dt = $df->format($dt, Date::DATETIME);
+                    $this->assertEquals($str_dt, $df->format($stamp . ' UTC', Date::DATETIME));
+                    $this->assertEquals($str_dt, $df->format($epoch, Date::DATETIME));
+                    $this->assertEquals($str_dt, $df->formatDateTime($dt));
+                    $this->assertEquals(
+                        $representations[$i],
+                        $str_dt, 
+                        "Asserting that $stamp when formatted in representation $i yields {$representations[$i]}"
+                    );
+
+                    $str_d = $df->format($dt, Date::DATE);
+                    $this->assertEquals($str_d, $df->formatDate($dt));
+                    $this->assertEquals($str_d, $df->format($epoch, Date::DATE));
+                    $this->assertEquals($str_d, $df->format($stamp . ' UTC', Date::DATE));
+                    $this->assertEquals(
+                        $representations[$i],
+                        $str_d, 
+                        "Asserting that $stamp when formatted in representation $i yields {$representations[$i]}"
+                    );
+
+                    $str_t = $df->format($dt, Date::TIME);
+                    $this->assertEquals($str_t, $df->format($epoch, Date::TIME));
+                    $this->assertEquals($str_t, $df->format($stamp . ' UTC', Date::TIME));
+                    $this->assertEquals($str_t, $df->formatTime($dt));
+                    $this->assertEquals(
+                        $representations[$i],
+                        $str_t, 
+                        "Asserting that $stamp when formatted in representation $i yields {$representations[$i]}"
+                    );
 
                     $parsed = $df->parse($representations[$i], Date::DATETIME);
                     $parsed_stamp = $parsed->getTimestamp();
-                    $this->assertEquals($epoch, $parsed_stamp, "Asserting that both $stamp and {$representations[$i]} convert to the same stamp");
+                    $this->assertEquals(
+                        $epoch,
+                        $parsed_stamp,
+                        "Asserting that both $stamp and {$representations[$i]} convert to the same stamp"
+                    );
+
+                    $parsed = $df->parse($representations[$i], Date::DATE);
+                    $parsed_stamp = $parsed->getTimestamp();
+                    $this->assertEquals(
+                        $epoch,
+                        $parsed_stamp,
+                        "Asserting that both $stamp and {$representations[$i]} convert to the same stamp"
+                    );
+
+                    $parsed = $df->parse($representations[$i], Date::TIME);
+                    $parsed_stamp = $parsed->getTimestamp();
+                    $this->assertEquals(
+                        $epoch,
+                        $parsed_stamp,
+                        "Asserting that both $stamp and {$representations[$i]} convert to the same stamp"
+                    );
                 }
             }
         }
     }
+
+    public function testConstructWithInvalidTimeZone()
+    {
+        $l = new Locale('en');
+        $tz = 'foobar';
+
+        $this->expectException(I18nException::class);
+        $this->expectExceptionMessage("Invalid time zone: foobar");
+
+        $fmt = new Date($l, $tz);
+    }
+
+    public function testConstructWithDateTimeZone()
+    {
+        $l = new Locale('en');
+        $tz = new DateTimeZone("UTC");
+        
+        $fmt = new Date($l, $tz);
+        $tz = $fmt->getTimeZone();
+        $this->assertInstanceOf(IntlTimeZone::class, $tz);
+
+        $tz = IntlTimeZone::createTimeZone("UTC");
+        $fmt = new Date($l, $tz);
+        $this->assertEquals($tz, $fmt->getTimeZone());
+    }
+
+    public function testSetInvalidDateFormatType()
+    {
+        $l = new Locale('en');
+        $fmt = new Date($l);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage("Invalid date type");
+        $fmt->setDateFormat('foo', 9);
+    }
+
+    public function testFormatInvalidDate()
+    {
+        $l = new Locale('en');
+        $fmt = new Date($l);
+
+        $this->expectException(I18nException::class);
+        $this->expectExceptionMessage("Invalid date");
+        $fmt->format(null, Date::DATE);
+    }   
+
+    public function testParseInvalidDateType()
+    {
+        $l = new Locale('en');
+        $fmt = new Date($l);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage("Invalid date type");
+        $fmt->parse('foobar', 9);
+    }   
 }
 

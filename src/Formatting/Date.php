@@ -76,17 +76,14 @@ class Date
     /**
      * Construct the formatter.
      * @param Locale $locale The locale to use for formatting and parsing
+     * @param string|DateTimeZone|IntlTimeZone $timezone The timezone to use for formatting. When null,
+     *                                                   the default time zone is used.
      */
-    public function __construct(Locale $locale)
+    public function __construct(Locale $locale, $timezone = null)
     {
         $this->locale = $locale;
         $this->date_formatter = new IntlDateFormatter($locale->getLocale(), null, null);
-
-        $tz = date_default_timezone_get();
-        if (empty($tz))
-            $tz = IntlTimeZone::createDefault();
-
-        $this->setTimeZone($tz);
+        $this->setTimeZone($timezone);
 
         // Call the hook to allow adjusting default values
         Hook::execute("Wedeto.I18n.Formatting.Date.Create", ['date_formatter' => $this]);
@@ -193,18 +190,30 @@ class Date
 
     /**
      * Change the time zone for this formatter
-     * @param mixed $tz A DateTimeZone object or a string representing a time zone
+     * @param mixed $tz A DateTimeZone or IntlTimeZone object or a string
+     *                  representing a time zone
      * @return Date Provides fluent interface
+     * @throws I18nException When an invalid time zone is provided
      */
-    public function setTimezone($tz)
+    public function setTimezone($timezone)
     {
-        if ($tz instanceof DateTimeZone)
-            $tz = IntlTimeZone::fromDateTimeZone($tz);
-        elseif (is_string($tz))
-            $tz = IntlTimeZone::createTimeZone($tz);
-        else
-            throw new I18nException("Invalid time zone: " . $tz);
+        if ($timezone === null)
+        {
+            $timezone = date_default_timezone_get();
+            $timezone = $timezone ?: IntlTimeZone::createDefault();
+        }
 
+        $tz = null;
+        if ($timezone instanceof DateTimeZone)
+            $tz = IntlTimeZone::fromDateTimeZone($timezone);
+        elseif ($timezone instanceof IntlTimeZone)
+            $tz = $timezone;
+        elseif (is_string($timezone))
+            $tz = IntlTimeZone::createTimeZone($timezone);
+
+        if ($tz === null || $tz->getID() === "Etc/Unknown")
+            throw new I18nException("Invalid time zone: " . WF::str($timezone));
+        
         $this->timezone = $tz;
         $this->date_formatter->setTimeZone($tz);
         return $this;
@@ -231,15 +240,11 @@ class Date
      *                  specifying what format to set
      * @return Date Provides fluent interface
      */
-    public function setDateFormat($fmt, $type)
+    public function setDateFormat(string $fmt, int $type)
     {
         // Validate the pattern
         $cur = $this->date_formatter->getPattern();
-        if (!$this->date_formatter->setPattern($fmt))
-        {
-            $this->date_formatter->setPattern($cur);
-            throw new I18nException("Invalid date/time pattern: " . WF::str($fmt));
-        }
+        $this->date_formatter->setPattern($fmt);
 
         switch ($type)
         {
@@ -259,4 +264,6 @@ class Date
     }
 }
 
+// @codeCoverageIgnoreStart
 WF::check_extension('intl', 'IntlDateFormatter');
+// @codeCoverageIgnoreEnd
