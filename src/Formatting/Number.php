@@ -27,12 +27,13 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 */
 
-namespace Wedeto\I18n;
+namespace Wedeto\I18n\Formatting;
 
 use NumberFormatter;
 
 use Wedeto\I18n\Locale;
 use Wedeto\Util\Functions as WF;
+use Wedeto\Util\Hook;
 
 /**
  * Format and parse numbers according to a specific locale
@@ -40,16 +41,19 @@ use Wedeto\Util\Functions as WF;
 class Number
 {
     /** The locale to use */
-    private $locale;
+    protected $locale;
 
     /** The number formatter object */
-    private $number_formatter = null;
+    protected $number_formatter = null;
 
-    /** The thousand separator */
-    private $thousand_separator;
+    /** The grouping symbol used to group digits in large numbers */
+    protected $grouping_symbol;
 
-    /** The decimal point */
-    private $decimal_point;
+    /** The decimal symbol separating decimals from the rest of the number */
+    protected $decimal_symbol;
+
+    /** The maximum number of decimals to display */
+    protected $decimal_precision = 10;
 
     /**
      * Create the object based on the provided locale
@@ -60,30 +64,44 @@ class Number
         $this->locale = $locale;
         $this->number_formatter = new NumberFormatter($this->locale->getLocale(), NumberFormatter::DECIMAL);
 
+        // Allow customization using a hook
+        $response = Hook::execute(
+            "Wedeto.I18n.Formatting.Number.Create",
+            ['object' => $this, 'formatter' => $this->number_formatter]
+        );
+        $this->number_formatter = $response['formatter'];
+
         // Extract the thousand separator and decimal point from the number formatter
-        $pattern = trim($this->number_formatter->getPattern(), "#");
-        $this->thousand_separator = substr($pattern, 0, 1);
-        $this->decimal_point = substr($pattern, -1, 1);
+        $this->decimal_symbol = $this->number_formatter->getSymbol(NumberFormatter::DECIMAL_SEPARATOR_SYMBOL);
+        $this->grouping_symbol = $this->number_formatter->getSymbol(NumberFormatter::GROUPING_SEPARATOR_SYMBOL);
     }
 
     /**
      * Format the provided number.
      * 
      * @param numeric $number The number to format
-     * @param int $decimals The amount of decimals to show. When omitted, all decimals are used
+     * @param int $decimals The maximum amount of decimals to show. Null to use default
      * @return string The formatted string
      */
-    public function format($number, int $decimals = null)
+    public function format($number, $decimals = null)
     {
-        if ($decimals !== null)
-        {
-            // NumberFormatter doesn't provide a way to limit the amount of
-            // decimals on the fly, only by changing the pattern explicitly.
-            // number_format is an easier way to accomplish this.
-            return number_format($number, $decimals, $this->thousand_separator, $this->decimal_point);
-        }
+        if ($decimals !== null && !is_int($decimals))
+            throw new InvalidArgumentException("Decimals should be an int, not: " . WF::str($decimals));
 
+        $decimals = $decimals ?? $this->decimal_precision;
+        $this->number_formatter->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, $decimals);
         return $this->number_formatter->format($number);
+    }
+
+    /**
+     * Set the default amount of decimals
+     * @param int $decimals The maximum number of decimals to display
+     * @return Number Provides fluent interface
+     */
+    public function setDecimalPrecision(int $decimals)
+    {
+        $this->decimals = $decimals;
+        return $this;
     }
 
     /**
@@ -93,8 +111,34 @@ class Number
      */
     public function parse($str)
     {
-        return $this->number_formatter->parse($number);
+        return $this->number_formatter->parse($str);
+    }
+
+    /**
+     * @return string the symbol used for separating decimals
+     */
+    public function getDecimalSymbol()
+    {
+        return $this->decimal_symbol;
+    }
+
+    /**
+     * @return string the symbol used for grouping thousands
+     */
+    public function getGroupingSymbol()
+    {
+        return $this->grouping_symbol;
+    }
+
+    /**
+     * @return Locale The locale object associated with the formatter
+     */
+    public function getLocale()
+    {
+        return $this->locale;
     }
 }
 
+// @codeCoverageIgnoreStart
 WF::check_extension('intl', 'NumberFormatter');
+// @codeCoverageIgnoreEnd

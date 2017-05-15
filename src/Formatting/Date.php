@@ -262,6 +262,14 @@ class Date
         }
         return $this;
     }
+
+    /**
+     * @return Locale The locale object associated with the formatter
+     */
+    public function getLocale()
+    {
+        return $this->locale;
+    }
 }
 
 // @codeCoverageIgnoreStart

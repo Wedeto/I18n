@@ -35,13 +35,13 @@ use Wedeto\Log\Writer\AbstractWriter;
 use Wedeto\Log\Logger;
 
 /**
- * TranslateLogger hooks into the logger of Wedeto.I18n.Translator.Translator and
+ * TranslationLogger hooks into the logger of Wedeto.I18n.Translator.Translator and
  * writes untranslated strings to a POT-like file, including the line where the
  * translated string was requested.
  * 
- * Take note: the file is not aggrated and duplicates may occur.
+ * Take note: the file is not aggregated and duplicates will occur.
  */
-class TranslateLogger extends AbstractWriter
+class TranslationLogger extends AbstractWriter
 {
     /** The pattern of the POT file */
     private $pattern;
@@ -84,11 +84,11 @@ class TranslateLogger extends AbstractWriter
         $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
 
         $ignore = array(
-            'Wedeto\I18n\Translate',
+            'Wedeto\I18n\I18n',
             'Wedeto\I18n\Translator\Translator',
             'Psr\Log\AbstractLogger',
             'Wedeto\Log\Logger',
-            'Wedeto\I18n\TranslateLogger'
+            'Wedeto\I18n\TranslationLogger'
         );
 
         $informative_trace = null;

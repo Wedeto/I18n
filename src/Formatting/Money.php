@@ -30,9 +30,12 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Wedeto\I18n\Formatting;
 
 use NumberFormatter;
+use InvalidArgumentException;
 use Wedeto\I18n\Locale;
+use Wedeto\I18n\I18nException;
 
 use Wedeto\Util\Functions as WF;
+use Wedeto\Util\Hook;
 
 /**
  * Format monetary numbers
@@ -40,24 +43,41 @@ use Wedeto\Util\Functions as WF;
 class Money
 {
     /** The locale in use */
-    private $locale;
+    protected $locale;
 
     /** The currency NumberFormatter object */
-    private $currency_formatter = null;
+    protected $currency_formatter = null;
 
     /** The currency used for formatting */
-    private $currency;
+    protected $currency;
+
+    /** Currency optional -> use number parses when normal parser fails */
+    protected $fallback_parser;
 
     /**
-     * Create a formatter
+     * Create a formatter for the specified locale. The locale should contain
+     * the monetary information - the currency in use.
+     * You can explicity specify this by using keywords, for example, you could
+     * use en_US@currency=JPY to use US formatting with JPY as currency.
+     *
      * @param Locale $locale The locale used for formatting
-     * @param string $currency The currency
      */
-    public function __construct(Locale $locale, string $currency = "€")
+    public function __construct(Locale $locale)
     {
         $this->locale = $locale;
         $this->currency_formatter = new NumberFormatter($this->locale->getLocale(), NumberFormatter::CURRENCY);
-        $this->currency = $currency;
+        $this->fallback_parser = new Number($locale);
+
+        // Allow customization using a hook
+        $response = Hook::execute(
+            "Wedeto.I18n.Formatting.Money.Create",
+            ['object' => $this, 'formatter' => $this->currency_formatter]
+        );
+        $this->currency_formatter = $response['formatter'];
+
+        // Extract currency symbols
+        $this->currency_code = $this->currency_formatter->getTextAttribute(NumberFormatter::CURRENCY_CODE);
+        $this->currency_symbol = $this->currency_formatter->getSymbol(NumberFormatter::CURRENCY_SYMBOL);
     }
 
     /**
@@ -67,10 +87,13 @@ class Money
      * @param string $currency The currency to use. When omitted, the default is used
      * @return string The formatted money string
      */
-    public function format(float $number, $currency = null)
+    public function format(float $number, string $currency = null)
     {
-        $currency = $currency ?: $this->getCurrency();
-        return $this->currency_formatter->formatCurrency($number, $currency);
+        $currency = $currency ?: $this->getCurrencyCode();
+        $str = $this->currency_formatter->formatCurrency($number, $currency);
+        if ($str === false)
+            throw new I18nException("Invalid currency: " . $currency);
+        return $str;
     }
 
     /**
@@ -81,34 +104,69 @@ class Money
      */
     public function parse(string $str, $currency = null)
     {
-        if ($this->currency_formatter === null)
-            $this->currency_formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
-
-        $currency = $currency ?: $this->getCurrency();
+        $currency = $currency ?: $this->getCurrencyCode();
         $amount = $this->currency_formatter->parseCurrency($str, $currency);
+
+        // Fallback to a different parser if the main one fails - eg a number parser.
+        if ($amount === false && $this->fallback_parser !== null)
+            $amount = $this->fallback_parser->parse($str);
+
         if ($amount === false)
-            throw new \InvalidArgumentException("Cannot parse value: " . $str);
+            throw new I18nException("Cannot parse value: " . $str);
+
         return $amount;
     }
 
     /**
-     * Set the default currency for this object
-     * @param string $currency The currency to set
-     * @return Money Provides fluent interface
+     * @return string The currency symbol for the locale
      */
-    public function setCurrency(string $currency)
+    public function getCurrencySymbol()
     {
-        $this->currency = strtoupper($currency);
+        return $this->currency_symbol;
+    }
+
+    /**
+     * @return string The currency code for the locale
+     */
+    public function getCurrencyCode()
+    {
+        return $this->currency_code;
+    }
+
+    /**
+     * Set a fallback parser that is used when the currency
+     * parser doesn't work. The default is a number formatter
+     * with the same locale, to make the currency symbol optional.
+     *
+     * @param object $fallback_parsed The argument must be an object and have a
+     *                                method:
+     *  
+     *                                Parser#parse($number_str) that returns a float.
+     *                                  
+     *                                Pass in null to disable the fallback parser.
+     * @return Money Provides fluent interface
+     * @throws InvalidArgumentException When an invalid parser is provided
+     */
+    public function setFallbackParser($fallback_parser)
+    {
+        if (empty($fallback_parser))
+            $this->fallback_parser = null;
+        elseif (is_object($fallback_parser) && method_exists($fallback_parser, 'parse'))
+            $this->fallback_parser = $fallback_parser;
+        else
+            throw new InvalidArgumentException("Parser must have a parse method");
         return $this;
     }
 
     /**
-     * @return string The currency currency in use
+     * @return Locale The locale object associated with the formatter
      */
-    public function getCurrency()
+    public function getLocale()
     {
-        return $this->currency;
+        return $this->locale;
     }
 }
 
+// @codeCoverageIgnoreStart
 WF::check_extension('intl', 'NumberFormatter');
+// @codeCoverageIgnoreEnd

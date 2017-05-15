@@ -82,6 +82,7 @@ class DateTest extends TestCase
             $l = new Locale($locale);
             $df = new Date($l);
             $df->setTimeZone($dtz);
+            $this->assertEquals($l, $df->getLocale());
 
             foreach ($times as $stamp => $representations)
             {

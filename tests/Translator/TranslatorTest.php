@@ -43,13 +43,14 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Wedeto\I18n\Translator;
 
 use PHPUnit\Framework\TestCase;
-use Locale;
+use Locale as PHPLocale;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamWrapper;
 use org\bovigo\vfs\vfsStreamDirectory;
 
 use Wedeto\Util\Cache;
 use Wedeto\I18n\Translator\Plural\Rule as PluralRule;
+use Wedeto\I18n\Locale;
 
 class TranslatorTest extends TestCase
 {
@@ -59,10 +60,10 @@ class TranslatorTest extends TestCase
 
     public function setUp()
     {
-        $this->originalLocale = Locale::getDefault();
+        $this->originalLocale = PHPLocale::getDefault();
         $this->translator = new Translator();
 
-        Locale::setDefault('en_EN');
+        PHPLocale::setDefault('en_EN');
 
         $this->testFilesDir = __DIR__ . '/resources';
     }
@@ -70,7 +71,7 @@ class TranslatorTest extends TestCase
     public function tearDown()
     {
         if (extension_loaded('intl'))
-            Locale::setDefault($this->originalLocale);
+            PHPLocale::setDefault($this->originalLocale);
     }
 
     public function testDefaultLocale()
@@ -80,7 +81,7 @@ class TranslatorTest extends TestCase
 
     public function testForcedLocale()
     {
-        $this->translator->setLocale('de_DE');
+        $this->translator->setLocale(new Locale('de_DE'));
         $this->assertEquals('de_DE', $this->translator->getLocale());
     }
 
@@ -88,7 +89,7 @@ class TranslatorTest extends TestCase
     {
         $td = new TextDomain(['foo' => 'bar']);
         $this->translator->injectMessages('default', $td, 'en_EN');
-        $this->translator->setLocale('en_EN');
+        $this->translator->setLocale(new Locale('en_EN'));
         $this->assertEquals('bar', $this->translator->translate('foo'));
     }
 
@@ -129,7 +130,7 @@ class TranslatorTest extends TestCase
 
     public function testTranslatePlurals()
     {
-        $this->translator->setLocale('en_EN');
+        $this->translator->setLocale(new Locale('en_EN'));
         $this->translator->injectMessages('default', $this->getSampleTextDomainWithPlurals(), 'en_EN');
 
         $pl0 = $this->translator->translatePlural('Message 5', 'Message 5 Plural', 1);
@@ -144,7 +145,7 @@ class TranslatorTest extends TestCase
     public function testTranslateNoPlurals()
     {
         // Some languages such as Japanese and Chinese does not have plural forms
-        $this->translator->setLocale('ja_JP');
+        $this->translator->setLocale(new Locale('ja_JP'));
         $this->translator->injectMessages('default', $this->getSampleTextDomainWithoutPlurals(), 'ja_JP');
 
         $pl0 = $this->translator->translatePlural('Message 9', 'Message 9 Plural', 1);
@@ -159,18 +160,18 @@ class TranslatorTest extends TestCase
     public function testTranslateNonExistantLocale()
     {
         // Test that a locale without translations does not cause warnings
-        $this->translator->setLocale('es_ES');
+        $this->translator->setLocale(new Locale('es_ES'));
         $this->assertEquals('Message 1', $this->translator->translate('Message 1'));
         $this->assertEquals('Message 9', $this->translator->translate('Message 9'));
 
-        $this->translator->setLocale('fr_FR');
+        $this->translator->setLocale(new Locale('fr_FR'));
         $this->assertEquals('Message 1', $this->translator->translate('Message 1'));
         $this->assertEquals('Message 9', $this->translator->translate('Message 9'));
     }
 
     public function testGetAllMessagesLoadedInTranslator()
     {
-        $this->translator->setLocale('en_EN');
+        $this->translator->setLocale(new Locale('en_EN'));
         $this->translator->injectMessages('default', $this->getSampleTextDomainWithPlurals(), 'en_EN');
 
         $allMessages = $this->translator->getAllMessages();
@@ -181,7 +182,7 @@ class TranslatorTest extends TestCase
 
     public function testGetAllMessagesReturnsEmptyTextDomainWhenGivenTextDomainIsNotFound()
     {
-        $this->translator->setLocale('en_EN');
+        $this->translator->setLocale(new Locale('en_EN'));
         $this->translator->injectMessages('default', $this->getSampleTextDomainWithPlurals(), 'en_EN');
 
         $allMessages = $this->translator->getAllMessages('foo_domain');
@@ -190,7 +191,7 @@ class TranslatorTest extends TestCase
 
     public function testGetAllMessagesReturnsEmptyTextDomainWhenGivenLocaleDoesNotExist()
     {
-        $this->translator->setLocale('en_EN');
+        $this->translator->setLocale(new Locale('en_EN'));
         $this->translator->injectMessages('default', $this->getSampleTextDomainWithPlurals(), 'en_EN');
 
         $allMessages = $this->translator->getAllMessages('default', 'es_ES');
@@ -207,7 +208,7 @@ class TranslatorTest extends TestCase
         $c = new Cache("translatecache");
 
         $this->translator->setCache($c);
-        $this->translator->setLocale('en_EN');
+        $this->translator->setLocale(new Locale('en_EN'));
         $td = new TextDomain(['foo' => 'bar']);
         $this->translator->injectMessages('default', $td, 'en_EN');
 
@@ -216,7 +217,7 @@ class TranslatorTest extends TestCase
 
         // Create a new translator
         $trl = new Translator;
-        $trl->setLocale('en_EN');
+        $trl->setLocale(new Locale('en_EN'));
 
         // Check that the translation doesn't work
         $this->assertEquals('foo', $trl->translate('foo'));
@@ -246,10 +247,10 @@ class TranslatorTest extends TestCase
         $this->translator->injectMessages('default', $td, 'en_US');
 
         // Incorrect Locale, so it shouldn't translate
-        $this->translator->setLocale('en_EN');
+        $this->translator->setLocale(new Locale('en_EN'));
         $this->assertEquals('foo', $this->translator->translate('foo'));
 
-        $this->translator->setFallbackLocale('en_US');
+        $this->translator->setFallbackLocale(new Locale('en_US'));
 
         // Now it should work
         $this->assertEquals('bar', $this->translator->translate('foo'));
@@ -280,7 +281,7 @@ class TranslatorTest extends TestCase
         $this->assertEquals('foobarbar', $this->translator->translatePlural('test', 'testmult', 10));
 
         // C should return unmodified string always
-        $this->translator->setLocale('C');
+        $this->translator->setLocale(new Locale('C'));
         $this->assertEquals('foo', $this->translator->translate('foo'));
         $this->assertEquals('test', $this->translator->translatePlural('test', 'testmult', 1));
         $this->assertEquals('testmult', $this->translator->translatePlural('test', 'testmult', 2));
@@ -290,7 +291,7 @@ class TranslatorTest extends TestCase
     public function testPatterns()
     {
         $this->translator->addPattern($this->testFilesDir . '/testmo', 'translation-%s.mo', 'default');
-        $this->translator->setLocale('en_US');
+        $this->translator->setLocale(new Locale('en_US'));
 
         $pl0 = $this->translator->translatePlural('Message 5', 'Message 5 Plural', 1);
         $pl1 = $this->translator->translatePlural('Message 5', 'Message 5 Plural', 2);
@@ -300,7 +301,7 @@ class TranslatorTest extends TestCase
         $this->assertEquals('Message 5 (en) Plural 1', $pl1);
         $this->assertEquals('Message 5 (en) Plural 2', $pl2);
 
-        $this->translator->setLocale('de_DE');
+        $this->translator->setLocale(new Locale('de_DE'));
 
         $m0 = $this->translator->translate('Message 1');
         $m1 = $this->translator->translate('Message 8');

@@ -42,11 +42,11 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\I18n\Translator;
 
-use Locale;
-
+use Wedeto\I18n\Locale;
 use Wedeto\Util\LoggerAwareStaticTrait;
 use Wedeto\Util\Cache;
 use Wedeto\Util\Dictionary;
+use Wedeto\Util\Functions as WF;
 
 /**
  * Translator.
@@ -65,7 +65,10 @@ class Translator
     protected $locale;
 
     /** Locale to use as fallback if there is no translation. */
-    protected $fallbackLocale;
+    protected $fallback_locale;
+
+    /** The list of locales, in order of preference */
+    protected $locale_list = null;
     
     /** Default text domain */
     protected $textDomain = 'default';
@@ -74,10 +77,11 @@ class Translator
     protected $cache;
 
     /** Instantiate a translator */
-    public function __construct()
+    public function __construct(Locale $locale = null)
     {
         self::getLogger();
         $this->cache = new Dictionary;
+        $this->setLocale($locale ?: new Locale('c'));
     }
 
     /**
@@ -98,51 +102,72 @@ class Translator
      * @param  string $locale
      * @return Translator Provides fluent interface
      */
-    public function setLocale(string $locale)
+    public function setLocale(Locale $locale)
     {
         $this->locale = $locale;
+        $this->rebuildLocaleList();
 
         return $this;
     }
 
-    /**
-     * Get the default locale.
+    /** 
+     * Create the list of locale and locale fallback, based on the
+     * default locale and the fallback locale. Every translated message
+     * is looked up in each of these in order, until a match is found.
      *
-     * @return string
+     * The list is reversed to make sure the most preferred item is the last,
+     * as array_pop is more efficient than array_shift.
+     */
+    protected function rebuildLocaleList()
+    {
+        if ($this->fallback_locale !== null)
+        {
+            $this->locale_list = array_reverse(array_merge(
+                $this->locale->getFallbackList(),
+                $this->fallback_locale->getFallbackList()
+            ));
+        }
+        else
+        {
+            $this->locale_list = array_reverse($this->locale->getFallbackList());
+        }
+    }
+
+    /**
+     * @return Locale The locale used for translations
      */
     public function getLocale()
     {
-        if ($this->locale === null)
-            $this->setLocale(Locale::getDefault());
-
         return $this->locale;
     }
 
     /**
      * Set the fallback locale.
      *
-     * @param  string $locale
+     * @param Locale $locale The locale to use as fallback. Null to disable
      * @return Translator Provides fluent interface
      */
-    public function setFallbackLocale(string $locale)
+    public function setFallbackLocale($locale)
     {
-        $this->fallbackLocale = $locale;
+        if ($locale !== null && !($locale instanceof Locale))
+            throw new InvalidArgumentException("Invalid locale: " . WF::str($locale));
 
+        $this->fallback_locale = $locale;
+        $this->rebuildLocaleList();
         return $this;
     }
 
     /**
-     * Get the fallback locale.
-     *
-     * @return string
+     * @return Locale the fallback locale.
      */
     public function getFallbackLocale()
     {
-        return $this->fallbackLocale;
+        return $this->fallback_locale;
     }
 
     /**
      * Set the default text domain
+     *
      * @param string $domain The domain to set
      * @return Translator Provides fluent interface
      */
@@ -171,28 +196,17 @@ class Translator
      */
     public function translate(string $message, string $textDomain = null, string $locale = null)
     {
-        $locale = $locale ?: $this->getLocale();
-        if ($locale === 'C' || $message === '')
-            return $message;
-
-        $textDomain = $textDomain ?: $this->getTextDomain();
-        $translation = $this->getTranslatedMessage($message, $locale, $textDomain);
-
-        if ($translation !== null && $translation !== '')
-            return $translation;
-
-        // Log untranslated message
-        self::$logger->debug(
-            "Untranslated message: \"{msgid}\"", 
-            ["msgid" => $message, "locale" => $locale, "domain" => $textDomain]
-        );
-
-        if (
-            null !== ($fallbackLocale = $this->getFallbackLocale())
-            && $locale !== $fallbackLocale
-        ) {
-            return $this->translate($message, $textDomain, $fallbackLocale);
+        $locale_list = (array)($locale ?: $this->locale_list);
+        $preferred_locale = end($locale_list);
+        $translation = null;
+        if ($preferred_locale !== 'c')
+        {
+            $textDomain = $textDomain ?: $this->getTextDomain();
+            $translation = $this->getTranslatedMessage($message, null, $locale_list, $textDomain);
         }
+
+        if (!empty($translation))
+            return $translation;
 
         return $message;
     }
@@ -210,27 +224,19 @@ class Translator
      */
     public function translatePlural(string $singular, string $plural, int $number, string $textDomain = null, string $locale = null)
     {
-        $locale = $locale ?: $this->getLocale();
-        if ($locale === 'C' || $singular === '')
-            return $number === 1 ? $singular : $plural;
-
-        $textDomain = $textDomain ?: $this->getTextDomain();
-        $translation = $this->getTranslatedMessage($singular, $locale, $textDomain);
+        $locale_list = (array)($locale ?: $this->locale_list);
+        $preferred_locale = end($locale_list);
+        $translation = null;
+        if ($preferred_locale !== 'c')
+        {
+            $textDomain = $textDomain ?: $this->getTextDomain();
+            $translation = $this->getTranslatedMessage($singular, $plural, $locale_list, $textDomain);
+        }
 
         if (empty($translation))
-        {
-            // Log untranslated message
-            self::$logger->debug(
-                "Untranslated message: \"{msgid}\"", 
-                ["msgid" => $singular, "msgid_plural" => $plural, "locale" => $locale, "domain" => $textDomain]
-            );
-
-            if (null !== ($fallbackLocale = $this->getFallbackLocale()) && $locale !== $fallbackLocale)
-                return $this->translatePlural($singular, $plural, $number, $textDomain, $fallbackLocale);
-
             return $number == 1 ? $singular : $plural;
-        }
-        elseif (is_string($translation))
+
+        if (is_string($translation))
             $translation = array($translation);
 
         $index = $this->cache->get($textDomain, $locale)
@@ -246,26 +252,38 @@ class Translator
     /**
      * Get a translated message.
      *
-     * @param string $message
-     * @param string $locale
-     * @param string $textDomain
-     * @return string|null
+     * @param string $message The message to be translated
+     * @param string $locale_list The list of locales to try
+     * @param string $textDomain The text domain for the message
+     * @return string|array|null The translation, set of translations or null if no translation is available
      */
-    protected function getTranslatedMessage(string $message, string $locale, string $textDomain = 'default')
+    protected function getTranslatedMessage(string $message, $plural = null, array $locale_list, string $textDomain)
     {
         if (empty($message))
             return '';
 
-        if (!$this->cache->has($textDomain, $locale))
-            $this->loadMessages($textDomain, $locale);
-
-        if ($this->cache->has($textDomain, $locale))
+        while (!empty($locale_list))
         {
+            $locale = array_pop($locale_list)->getLocale();
+            if (!$this->cache->has($textDomain, $locale))
+                $this->loadMessages($textDomain, $locale);
+
             $td = $this->cache->get($textDomain, $locale);
 
             if ($td->has($message))
                 return $td->get($message);
+
+            // Log untranslated message
+            $context = ['msgid' => $message, 'locale' => $locale, 'domain '=> $textDomain];
+            if ($plural !== null)
+                $context['msgid_plural'] = $plural;
+
+            self::$logger->debug(
+                "Untranslated message: \"{msgid}\"", 
+                $context
+            );
         }
+        return null;
     }
 
     /**
