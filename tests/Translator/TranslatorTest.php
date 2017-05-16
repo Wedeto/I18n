@@ -182,6 +182,35 @@ class TranslatorTest extends TestCase
         $this->assertEquals('Message 1 (en)', $allMessages['Message 1']);
     }
 
+    public function testGetLoadedLocales()
+    {
+        $this->translator->addPattern($this->testFilesDir . '/testmo', '%s/translation.mo', 'default');
+
+        $list = $this->translator->getLoadedLocales();
+        $this->assertEmpty($list);
+
+        $this->translator->setLocale(new Locale('de_DE'));
+        $this->translator->translate('Message 1');
+        $list = $this->translator->getLoadedLocales();
+        $this->assertEquals(['de_DE'], $list);
+        $list = $this->translator->getLoadedLocales('default');
+        $this->assertEquals(['de_DE'], $list);
+
+        $this->translator->setLocale(new Locale('en_US'));
+        $this->translator->translate('Message 1');
+        $list = $this->translator->getLoadedLocales();
+        $this->assertEquals(['de_DE', 'en_US'], $list);
+        $list = $this->translator->getLoadedLocales('default');
+        $this->assertEquals(['de_DE', 'en_US'], $list);
+
+        $patterns = $this->translator->getPatterns();
+        $this->assertEquals(1, count($patterns));
+        $this->assertTrue(isset($patterns['default']));
+        $this->assertEquals(1, count($patterns['default']));
+        $this->assertEquals($this->testFilesDir . '/testmo', $patterns['default'][0]['baseDir']);
+        $this->assertEquals('%s/translation.mo', $patterns['default'][0]['pattern']);
+    }
+
     public function testGetAllMessagesReturnsEmptyTextDomainWhenGivenTextDomainIsNotFound()
     {
         $this->translator->setLocale(new Locale('en_EN'));
@@ -306,7 +335,7 @@ class TranslatorTest extends TestCase
 
     public function testPatterns()
     {
-        $this->translator->addPattern($this->testFilesDir . '/testmo', 'translation-%s.mo', 'default');
+        $this->translator->addPattern($this->testFilesDir . '/testmo', '%s/translation.mo', 'default');
         $this->translator->setLocale(new Locale('en_US'));
 
         $pl0 = $this->translator->translatePlural('Message 5', 'Message 5 Plural', 1);

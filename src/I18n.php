@@ -55,17 +55,14 @@ class I18n
     /** The number formatter */
     protected $number_formatter;
 
+    /** The date formatter */
+    protected $date_formatter;
+
     /** The locale in use */
     protected $locale;
 
     /** The language for the configured locale, used for translateList */
     protected $language;
-
-    /** The locales available for translation */
-    protected $locales = array();
-
-    /** The domains available in translations */
-    protected $domains = array();
 
     /** 
      * @return Translate The current translation instance
@@ -73,7 +70,12 @@ class I18n
     public static function getDefault()
     {
         if (empty(self::$default))
+        {
+            // @codeCoverageIgnoreStart
+            // Can't clear, so untestable.
             throw new I18nException("No default I18n instance has been set");
+            // @codeCoverageIgnoreEnd
+        }
         return self::$default;
     }
 
@@ -92,27 +94,58 @@ class I18n
      */
     public function __construct($locale = null)
     {
-        if ($locale !== null)
-            $locale = Locale::create($locale);
-        $this->translator = new Translator();
-        $this->translator->setFallbackLocale('en');
-        $this->setLocale($locale ?: new Locale('c'));
+        $locale = $locale === null ? Locale::getDefault() : Locale::create($locale);
+        $this->translator = new Translator($locale);
+        $this->setLocale($locale);
     }
 
     /**
-     * Get the list of locales that have localizations.
-     * @param string $textDomain The text domain to narrow the search
-     * @return array The list of locales for the text domain, or in general
+     * Check if the locale is available, and return the first element in the
+     * fallback list that has available translations. When none of the
+     * fallback locales have a translation, null is returned.
+     *
+     * @return Locale An available locale. Null if none was found.
      */
-    public function getLocaleList($textDomain = null)
+    public function findTranslatedLocale($locale)
     {
-        if ($textDomain === null)
-            return array_keys($this->locales);
-    
-        if (!isset($this->domains[$textDomain]))
-            return array();
+        $locale = Locale::create($locale);
+        $locales = $this->getTranslatedLocales();
 
-        return array_keys($this->domains[$textDomain]);
+        $list = $locale->getFallbackList();
+        foreach ($list as $locale)
+        {
+            $locale_id = $locale->getLocale();
+            if (in_array($locale_id, $locales))
+                return $locale;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get a list of locales that have a translation
+     * 
+     * The list is composed of directly available locales in the translator
+     * and locales that are available in one of the defined patterns.
+     *
+     * @see I18n::registerTextDomain
+     */
+    public function getTranslatedLocales()
+    {
+        $locales = $this->translator->getLoadedLocales();
+        $td_patterns = $this->translator->getPatterns();
+
+        foreach ($td_patterns as $textDomain => $patterns)
+        {
+            foreach ($patterns as $data)
+            {
+                $path = $data['baseDir'];
+                $reader = new DirReader($path, DirReader::READ_DIR);
+                foreach ($reader as $locale)
+                    $locales[] = $locale;
+            }
+        }
+        return array_values(array_unique($locales));
     }
 
     /**
@@ -128,6 +161,7 @@ class I18n
         $this->translator->setLocale($this->locale);
         $this->money_formatter = null;
         $this->number_formatter = null;
+        $this->date_formatter = null;
         $this->language = $this->locale->getLanguage();
         return $this->locale;
     }
@@ -161,6 +195,16 @@ class I18n
     }
 
     /**
+     * @return Formatting\Date A date formatter for the current locale
+     */
+    public function getDateFormatter()
+    {
+        if ($this->date_formatter === null)
+            $this->date_formatter = new Formatting\Date($this->locale);
+        return $this->date_formatter;
+    }
+
+    /**
      * @return Translate\Translator The translator for the current locale
      */
     public function getTranslator()
@@ -179,6 +223,9 @@ class I18n
      *          :c for a currency value
      *          :s for a string
      *          :b for a bool
+     *          :d for a date
+     *          :t for a time
+     *          :dt for a date and time
      * @param string $message The message to format
      * @param array $values The values available to put in the message
      * @return string The formatted string
@@ -187,7 +234,7 @@ class I18n
     {
         if (
             count($values) === 0 || 
-            !preg_match_all("/{([\w\d_]+)(:(([0-9]*)f|c|i|s|b))?}/", $message, $matches, PREG_SET_ORDER)
+            !preg_match_all("/{([\w\d_]+)(:(([0-9]*)f|c|i|s|b|d|t|dt))?}/", $message, $matches, PREG_SET_ORDER)
         )
         {
             // Nothing to replace
@@ -215,6 +262,10 @@ class I18n
                     $fmt = $this->getNumberFormatter();
                     $tokens[$token] = $fmt->format($val);
                 }
+                elseif ($val instanceof \DateTimeInterface || $val instanceof \IntlCalendar)
+                {
+                    $tokens[$token] = $this->getDateFormatter()->format($val, Formatting\Date::DATETIME);
+                }
                 else
                 {
                     $tokens[$token] = (string)$val;
@@ -223,7 +274,7 @@ class I18n
             elseif (count($match) === 5 || $match[3] === "f")
             {
                 // Float
-                $precision = (int)($match[4] ?? null);
+                $precision = $match[4] !== "" ? (int)$match[4] : null;
 
                 if (is_numeric($val))
                 {
@@ -259,6 +310,21 @@ class I18n
                 // Boolean value
                 $val = (bool)$val;
                 $tokens[$token] = $this->translate($val ? 'true' : 'false');
+            }
+            elseif ($match[3] === "d")
+            {
+                // Date
+                $tokens[$token] = $this->getDateFormatter()->format($val, Formatting\Date::DATE);
+            }
+            elseif ($match[3] === "t")
+            {
+                // Time
+                $tokens[$token] = $this->getDateFormatter()->format($val, Formatting\Date::TIME);
+            }
+            elseif ($match[3] === "dt")
+            {
+                // Date and time
+                $tokens[$token] = $this->getDateFormatter()->format($val, Formatting\Date::DATETIME);
             }
         }
 
@@ -345,23 +411,9 @@ class I18n
     public function registerTextDomain(string $domain, string $path)
     {
         if (!file_exists($path) || !is_dir($path))
-        {
-            self::$logger->error("Language directory {0} does not exist for text domain {1}", [$path, $domain]);
-            return;
-        }
+            throw new I18nException("Language directory {$path} does not exist for text domain $domain");
 
         $this->translator->addPattern($path, '%s/' . $domain . '.mo', $domain);
-        if (!isset($domains[$domain]))
-            $this->domains[$domain] = array();
-
-        foreach (new DirReader($path, DirReader::READ_DIR) as $entry)
-        {
-            if (!isset($this->locales[$entry]))
-                $this->locales[$entry] = array($domain);
-            else
-                $this->locales[$entry][] = $domain;
-            $this->domains[$domain][$entry] = true;
-        }
         return $this;
     }
 }

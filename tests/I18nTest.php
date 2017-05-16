@@ -33,10 +33,14 @@ use PHPUnit\Framework\TestCase;
 
 use Wedeto\I18n\Translator\TextDomain;
 
+/**
+ * @covers Wedeto\I18n\I18n
+ */
 class I18nTest extends TestCase
 {
     public function setUp()
     {
+        $this->testFilesDir = __DIR__ . '/Translator/resources';
         $this->l_en = new Locale('en_US');
         $this->l_nl = new Locale('nl_NL');
         $this->i18n = new I18n($this->l_en);
@@ -81,6 +85,31 @@ class I18nTest extends TestCase
         $this->translator->injectMessages('test', $td, 'nl_NL');
     }
 
+    public function testLocales()
+    {
+        $this->i18n->setLocale('en_US');
+        $this->assertEquals('en_US', $this->i18n->getLocale()->getLocale());
+
+        $this->i18n->setLocale('nl_NL');
+        $this->assertEquals('nl_NL', $this->i18n->getLocale()->getLocale());
+
+        $list = $this->i18n->getTranslatedLocales();
+        $this->assertEquals(['en_US', 'nl_NL'], $list);
+
+        $this->i18n->registerTextDomain('translation', $this->testFilesDir . '/testmo');
+        $list = $this->i18n->getTranslatedLocales();
+        $this->assertEquals(['en_US', 'nl_NL', 'de_DE'], $list);
+
+        $locale = $this->i18n->findTranslatedLocale('nl_NL_var');
+        $this->assertEquals('nl_NL', $locale->getLocale());
+
+        $locale = $this->i18n->findTranslatedLocale('en_US_Military');
+        $this->assertEquals('en_US', $locale->getLocale());
+
+        $locale = $this->i18n->findTranslatedLocale('fr_FR');
+        $this->assertNull($locale);
+    }
+
     public function testTranslations()
     {
         $this->i18n->setLocale('en_US');
@@ -114,6 +143,13 @@ class I18nTest extends TestCase
         $this->assertEquals('foo2 (nl_NL)', $this->i18n->translate('foo'));
         $this->assertEquals('foo2 (nl_NL) singular', $this->i18n->translatePlural('foo n', 'foo nn', 1));
         $this->assertEquals('foo2 (nl_NL) plural', $this->i18n->translatePlural('foo n', 'foo nn', 2));
+    }
+
+    public function testRegisterInvalidPathTextDomain()
+    {
+        $this->expectException(I18nException::class);
+        $this->expectExceptionMessage("Language directory /foo/bar/baz does not exist");
+        $this->i18n->registerTextDomain("foobar", "/foo/bar/baz");
     }
 
     public function testTranslationList()
@@ -195,6 +231,49 @@ class I18nTest extends TestCase
                 'Meer dan {people:i} mensen betalen hier {cost:c} voor',
                 ['people' => 1000, 'cost' => 29.99]
             )
+        );
+    }
+
+    public function testGetFormatters()
+    {
+        $locale = $this->i18n->setLocale('nl_NL');
+        $this->assertEquals('nl_NL', $locale->getLocale());
+
+        $fmt = $this->i18n->getMoneyFormatter();
+        $this->assertInstanceOf(Formatting\Money::class, $fmt);
+        $this->assertEquals($locale, $fmt->getLocale());
+
+        $fmt = $this->i18n->getNumberFormatter();
+        $this->assertInstanceOf(Formatting\Number::class, $fmt);
+        $this->assertEquals($locale, $fmt->getLocale());
+
+        $date = gmmktime(12, 0, 0, 1, 1, 2017);
+        $this->i18n->getDateFormatter()->setTimeZone("UTC");
+
+        $this->assertEquals('3,14', $this->i18n->formatMessage('{val:2f}', ['val' => M_PI]));
+        $this->assertEquals('3,1416', $this->i18n->formatMessage('{val:4f}', ['val' => M_PI]));
+        $this->assertEquals('3,1416', $this->i18n->formatMessage('{val}', ['val' => 3.1416]));
+
+        $this->assertEquals('3.141', $this->i18n->formatMessage('{val:i}', ['val' => 3141]));
+        $this->assertEquals('3.141', $this->i18n->formatMessage('{val}', ['val' => 3141]));
+
+        $this->assertEquals('3.141 3.141', $this->i18n->formatMessage('{val} {val}', ['val' => 3141]));
+
+        $this->assertEquals('2017-01-01', $this->i18n->formatMessage('{val:d}', ['val' => $date]));
+        $this->assertEquals('12:00:00', $this->i18n->formatMessage('{val:t}', ['val' => $date]));
+        $this->assertEquals('2017-01-01 12:00:00', $this->i18n->formatMessage('{val:dt}', ['val' => $date]));
+        $this->assertEquals('2017-01-01 12:00:00', $this->i18n->formatMessage('{val}', ['val' => new \DateTime("@" . $date)]));
+
+        $this->assertEquals('{foobar}', $this->i18n->formatMessage('{foobar}', ['foo' => 'bar']));
+
+
+        $msg = "At {date:d} at {date:t} (or {date:dt}) {str:s} was detected to have {num:i} integral and {numf:f} float values (rounded to 1 decimal {numf:1f}) for a value of {amount:c} (bool: {bool:b})";
+
+        $formatted = $this->i18n->formatMessage($msg, ['date' => $date, 'num' => 3000, 'numf' => 3.1416, 'str' => 'John Doe', 'amount' => 19.99, 'bool' => false]);
+
+        $this->assertEquals(
+            "At 2017-01-01 at 12:00:00 (or 2017-01-01 12:00:00) John Doe was detected to have 3.000 integral and 3,1416 float values (rounded to 1 decimal 3,1) for a value of € 19,99 (bool: false)",
+            $formatted
         );
     }
 }

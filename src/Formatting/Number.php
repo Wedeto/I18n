@@ -54,7 +54,7 @@ class Number
     protected $decimal_symbol;
 
     /** The maximum number of decimals to display */
-    protected $decimal_precision = 10;
+    protected $decimal_precision;
 
     /**
      * Create the object based on the provided locale
@@ -71,6 +71,7 @@ class Number
             ['object' => $this, 'formatter' => $this->number_formatter]
         );
         $this->number_formatter = $response['formatter'];
+        $this->decimal_precision = 10;
 
         // Extract the thousand separator and decimal point from the number formatter
         $this->decimal_symbol = $this->number_formatter->getSymbol(NumberFormatter::DECIMAL_SEPARATOR_SYMBOL);

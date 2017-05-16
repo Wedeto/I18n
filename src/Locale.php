@@ -63,7 +63,7 @@ class Locale
         if (empty($locale))
             throw new I18nException("Empty locale: $locale");
 
-        if (preg_match("/[^a-zA-Z_@=-]/", $locale) || strlen($locale) > 32)
+        if (preg_match("/[^a-zA-Z0-9_@=-]/", $locale) || strlen($locale) > 32)
             throw new I18nException("Invalid locale: $locale");
 
         $this->locale = \Locale::canonicalize($locale);

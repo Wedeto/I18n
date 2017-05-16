@@ -312,6 +312,16 @@ class Translator
 
         return $this;
     }
+    
+    /**
+     * @return array A list of patterns. The key are the text domains, and each element
+     * is a list of patters with two keys: baseDir for the starting point and pattern for
+     * the pattern added to that directory, with the locale filled in the place holder.
+     */
+    public function getPatterns()
+    {
+        return $this->patterns;
+    }
 
     /**
      * Load messages for a given language and domain.
@@ -390,5 +400,31 @@ class Translator
             $this->loadMessages($textDomain, $locale);
 
         return $this->cache->get($textDomain, $locale);
+    }
+
+    /**
+     * @return array List of Locale IDs that are available in any of the text domains.
+     */
+    public function getLoadedLocales(string $textDomain = null)
+    {
+        $locales = [];
+        if ($textDomain)
+        {
+            if ($this->cache->has($textDomain))
+            {
+                foreach ($this->cache[$textDomain] as $locale => $messages)
+                    if (count($messages))
+                        $locales[] = $locale;
+            }
+        }
+        else
+        {
+            foreach ($this->cache as $domain => $dlocales)
+                foreach ($dlocales as $locale => $messages)
+                    if (count($messages))
+                        $locales[] = $locale;
+        }
+
+        return array_unique($locales);
     }
 }
