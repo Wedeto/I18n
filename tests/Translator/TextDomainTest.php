@@ -45,6 +45,9 @@ use PHPUnit\Framework\TestCase;
 use Wedeto\I18n\Translator\Plural\Rule as PluralRule;
 use RuntimeException;
 
+/**
+ * @covers Wedeto\I18n\Translator\TextDomain
+ */
 class TextDomainTest extends TestCase
 {
     public function testInstantiation()

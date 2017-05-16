@@ -45,6 +45,9 @@ use PHPUnit\Framework\TestCase;
 use Locale;
 use InvalidArgumentException;
 
+/**
+ * @covers Wedeto\I18n\Translator\GetText
+ */
 class GetTextTest extends TestCase
 {
     protected $testFilesDir;
@@ -156,5 +159,13 @@ class GetTextTest extends TestCase
             ],
             $textDomain['Message B']->toArray()
         );
+    }
+
+    public function testLoaderRefusesUnknownRevision()
+    {
+        $loader = new GetText();
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('has an unknown major revision');
+        $textDomain = $loader->load('en_EN', $this->testFilesDir . '/corrupt.mo');
     }
 }

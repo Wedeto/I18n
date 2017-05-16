@@ -67,8 +67,15 @@ class Locale
             throw new I18nException("Invalid locale: $locale");
 
         $this->locale = \Locale::canonicalize($locale);
+
         if (empty($this->locale))
+        {
+            // @codeCoverageIgnoreStart
+            // Canonicalize will basically accept everything that the preg above accepts.
+            // Just a fail-safe check to make sure parsing succeeded.
             throw new I18nException("Invalid locale: $locale");
+            // @codeCoverageIgnoreEnd
+        }
     }
 
     /**

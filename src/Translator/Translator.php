@@ -152,8 +152,8 @@ class Translator
      */
     public function setFallbackLocale($locale)
     {
-        if ($locale !== null && !($locale instanceof Locale))
-            throw new InvalidArgumentException("Invalid locale: " . WF::str($locale));
+        if ($locale !== null)
+            $locale = Locale::create($locale);
 
         $this->fallback_locale = $locale;
         $this->rebuildLocaleList();
@@ -268,7 +268,9 @@ class Translator
 
         while (!empty($locale_list))
         {
-            $locale = array_pop($locale_list)->getLocale();
+            $locale = array_pop($locale_list);
+            if ($locale instanceof Locale)
+                $locale = $locale->getLocale();
             if (!$this->cache->has($textDomain, $locale))
                 $this->loadMessages($textDomain, $locale);
 
@@ -278,7 +280,7 @@ class Translator
                 return $td->get($message);
 
             // Log untranslated message
-            $context = ['msgid' => $message, 'locale' => $locale, 'domain '=> $textDomain];
+            $context = ['msgid' => $message, 'locale' => $locale, 'domain' => $textDomain];
             if ($plural !== null)
                 $context['msgid_plural'] = $plural;
 

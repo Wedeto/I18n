@@ -50,7 +50,11 @@ use org\bovigo\vfs\vfsStreamDirectory;
 use Wedeto\Util\Cache;
 use Wedeto\I18n\Translator\Plural\Rule as PluralRule;
 use Wedeto\I18n\Locale;
+use Wedeto\I18n\I18nException;
 
+/**
+ * @covers Wedeto\I18n\Translator\Translator
+ */
 class TranslatorTest extends TestCase
 {
     protected $translator;
@@ -263,9 +267,9 @@ class TranslatorTest extends TestCase
         $this->assertNull($this->translator->getFallbackLocale());
 
         // Try if passing a non-locale gives an error
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(I18nException::class);
         $this->expectExceptionMessage("Invalid locale");
-        $this->translator->setFallbackLocale('foo');
+        $this->translator->setFallbackLocale('foo bar too long locale to be parsed');
     }
 
     public function testIgnoreTranslation()

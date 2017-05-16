@@ -82,16 +82,18 @@ class I18n
      *
      * @param Translate $trl The instance to set as default
      */
-    public static function setDefault(Translate $trl)
+    public static function setDefault(I18n $i18n)
     {
-        self::$instance = $trl;
+        self::$default = $i18n;
     }
 
     /** 
      * Create the I18n object with a specified locale
      */
-    public function __construct(Locale $locale = null)
+    public function __construct($locale = null)
     {
+        if ($locale !== null)
+            $locale = Locale::create($locale);
         $this->translator = new Translator();
         $this->translator->setFallbackLocale('en');
         $this->setLocale($locale ?: new Locale('c'));
@@ -120,14 +122,14 @@ class I18n
      * @param Locale $locale The locale to set
      * @return string The locale that was set
      */
-    public function setLocale(Locale $locale)
+    public function setLocale($locale)
     {
-        $this->locale = $locale;
-        $this->translator->setLocale($locale);
+        $this->locale = Locale::create($locale);
+        $this->translator->setLocale($this->locale);
         $this->money_formatter = null;
         $this->number_formatter = null;
-        $this->language = $locale->getLanguage();
-        return $locale;
+        $this->language = $this->locale->getLanguage();
+        return $this->locale;
     }
 
     /**

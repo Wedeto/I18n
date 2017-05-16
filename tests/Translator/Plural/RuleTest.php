@@ -45,6 +45,11 @@ use PHPUnit\Framework\TestCase;
 
 use LogicException;
 
+/**
+ * @covers Wedeto\I18n\Translator\Plural\Rule
+ * @covers Wedeto\I18n\Translator\Plural\Parser
+ * @covers Wedeto\I18n\Translator\Plural\Symbol
+ */
 class RuleTest extends TestCase
 {
     public static function parseRuleProvider()
@@ -251,5 +256,20 @@ class RuleTest extends TestCase
             $thrown = true;
         }
         $this->assertTrue($thrown);
+    }
+
+    public function testRuleWithIncompatibleNumberOfPlurals()
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage("Unknown or invalid parser rule");
+        $rule = Rule::fromString('nplurals=2; plural=(n==1) ? 1 : (n==2) ? 2 : 0');
+
+        $this->assertEquals(1, $rule->evaluate(1));
+        $this->assertEquals(0, $rule->evaluate(0));
+        $this->assertEquals(0, $rule->evaluate(3));
+
+        $this->expectException(\OutOfRangeException::class);
+        $this->expectExceptionMessage("Calculated result 2 is not between 0 and 1");
+        $rule->evaluate(2);
     }
 }

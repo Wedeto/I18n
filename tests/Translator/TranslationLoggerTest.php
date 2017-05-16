@@ -39,6 +39,9 @@ use Wedeto\Log\Logger;
 use Wedeto\Log\Writer\WriterInterface;
 use Wedeto\IO\DirReader;
 
+/**
+ * @covers Wedeto\I18n\Translator\TranslationLogger
+ */
 class TranslationLoggerTest extends TestCase
 {
     public function setUp()
@@ -48,6 +51,7 @@ class TranslationLoggerTest extends TestCase
         $this->dir = vfsStream::url('logdir');
 
         $this->writer = new TranslationLogger($this->dir . '/%s_%s.pot');
+        $this->writer->setLevel('DEBUG');
         $this->logger = Logger::getLogger(Translator::class);
         $this->logger->removeLogWriters();
         $this->logger->addLogWriter($this->writer);
@@ -102,5 +106,20 @@ class TranslationLoggerTest extends TestCase
         $this->assertContains('msgid_plural "foo"', $contents);
         $this->assertContains('msgstr[0]', $contents);
         $this->assertContains('msgstr[1]', $contents);
+    }
+
+    public function testWriteLogAfterFailedTranslation()
+    {
+        $translator = new Translator('en');
+        $translator->setLogger($this->logger);
+
+        $this->assertEquals('foo', $translator->translate('foo'));
+
+        $dr = $this->getDirContents();
+        $this->assertEquals(1, count($dr), 'Translating unknown message does not write log');
+        $this->assertTrue(file_exists($this->dir . '/default_en.pot'));
+
+        $contents = file_get_contents($this->dir . '/default_en.pot');
+        $this->assertContains('msgid "foo"', $contents);
     }
 }

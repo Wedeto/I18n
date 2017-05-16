@@ -83,12 +83,12 @@ class Rule implements \Serializable
      */
     public function evaluate(int $number)
     {
-        $result = $this->evaluateAstPart($this->ast, abs((int) $number));
+        $result = $this->evaluateASTPart($this->ast, abs((int) $number));
 
         if ($result < 0 || $result >= $this->numPlurals)
         {
             throw new \OutOfRangeException(
-                sprintf('Calculated result %s is between 0 and %d', $result, ($this->numPlurals - 1))
+                sprintf('Calculated result %s is not between 0 and %d', $result, ($this->numPlurals - 1))
             );
         }
 
@@ -127,9 +127,9 @@ class Rule implements \Serializable
      * @param  array $ast
      * @param  int $number
      * @return int
-     * @throws LogicException
+     * @throws LogicException When an unknown symbol is encountered
      */
-    protected function evaluateAstPart(array $ast, int $number)
+    protected function evaluateASTPart(array $ast, int $number)
     {
         switch ($ast['id'])
         {
@@ -140,79 +140,83 @@ class Rule implements \Serializable
                 return $number;
 
             case '+':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       + $this->evaluateAstPart($ast['arguments'][1], $number);
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       + $this->evaluateASTPart($ast['arguments'][1], $number);
 
             case '-':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       - $this->evaluateAstPart($ast['arguments'][1], $number);
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       - $this->evaluateASTPart($ast['arguments'][1], $number);
 
             case '/':
                 // Integer division
                 return floor(
-                    $this->evaluateAstPart($ast['arguments'][0], $number)
-                    / $this->evaluateAstPart($ast['arguments'][1], $number)
+                    $this->evaluateASTPart($ast['arguments'][0], $number)
+                    / $this->evaluateASTPart($ast['arguments'][1], $number)
                 );
 
             case '*':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       * $this->evaluateAstPart($ast['arguments'][1], $number);
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       * $this->evaluateASTPart($ast['arguments'][1], $number);
 
             case '%':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       % $this->evaluateAstPart($ast['arguments'][1], $number);
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       % $this->evaluateASTPart($ast['arguments'][1], $number);
 
             case '>':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       > $this->evaluateAstPart($ast['arguments'][1], $number)
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       > $this->evaluateASTPart($ast['arguments'][1], $number)
                        ? 1 : 0;
 
             case '>=':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       >= $this->evaluateAstPart($ast['arguments'][1], $number)
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       >= $this->evaluateASTPart($ast['arguments'][1], $number)
                        ? 1 : 0;
 
             case '<':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       < $this->evaluateAstPart($ast['arguments'][1], $number)
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       < $this->evaluateASTPart($ast['arguments'][1], $number)
                        ? 1 : 0;
 
             case '<=':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       <= $this->evaluateAstPart($ast['arguments'][1], $number)
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       <= $this->evaluateASTPart($ast['arguments'][1], $number)
                        ? 1 : 0;
 
             case '==':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       == $this->evaluateAstPart($ast['arguments'][1], $number)
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       == $this->evaluateASTPart($ast['arguments'][1], $number)
                        ? 1 : 0;
 
             case '!=':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       != $this->evaluateAstPart($ast['arguments'][1], $number)
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       != $this->evaluateASTPart($ast['arguments'][1], $number)
                        ? 1 : 0;
 
             case '&&':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       && $this->evaluateAstPart($ast['arguments'][1], $number)
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       && $this->evaluateASTPart($ast['arguments'][1], $number)
                        ? 1 : 0;
 
             case '||':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       || $this->evaluateAstPart($ast['arguments'][1], $number)
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       || $this->evaluateASTPart($ast['arguments'][1], $number)
                        ? 1 : 0;
 
             case '!':
-                return !$this->evaluateAstPart($ast['arguments'][0], $number)
+                return !$this->evaluateASTPart($ast['arguments'][0], $number)
                        ? 1 : 0;
 
             case '?':
-                return $this->evaluateAstPart($ast['arguments'][0], $number)
-                       ? $this->evaluateAstPart($ast['arguments'][1], $number)
-                       : $this->evaluateAstPart($ast['arguments'][2], $number);
+                return $this->evaluateASTPart($ast['arguments'][0], $number)
+                       ? $this->evaluateASTPart($ast['arguments'][1], $number)
+                       : $this->evaluateASTPart($ast['arguments'][2], $number);
 
             default:
+                // @codeCoverageIgnoreStart
+                // Unknown symbol, but the parser will catch it so it is a fallback
+                // whenever new symbols might be added.
                 throw new \LogicException(sprintf('Unknown token: %s', $ast['id']));
+                // @codeCoverageIgnoreEnd
         }
     }
 
@@ -237,7 +241,7 @@ class Rule implements \Serializable
             throw new \LogicException(sprintf('Unknown or invalid parser rule: %s', $string));
 
         $tree = static::$parser->parse($match['plural']);
-        $ast  = static::createAst($tree);
+        $ast  = static::createAST($tree);
 
         return new static($numPlurals, $ast);
     }
@@ -251,7 +255,7 @@ class Rule implements \Serializable
      * @param Wedeto\I18n\Translator\Plural\Symbol $symbol
      * @return array
      */
-    protected static function createAst(Symbol $symbol)
+    protected static function createAST(Symbol $symbol)
     {
         $ast = array('id' => $symbol->id, 'arguments' => []);
 
@@ -265,18 +269,18 @@ class Rule implements \Serializable
                 break;
 
             case '!':
-                $ast['arguments'][] = static::createAst($symbol->first);
+                $ast['arguments'][] = static::createAST($symbol->first);
                 break;
 
             case '?':
-                $ast['arguments'][] = static::createAst($symbol->first);
-                $ast['arguments'][] = static::createAst($symbol->second);
-                $ast['arguments'][] = static::createAst($symbol->third);
+                $ast['arguments'][] = static::createAST($symbol->first);
+                $ast['arguments'][] = static::createAST($symbol->second);
+                $ast['arguments'][] = static::createAST($symbol->third);
                 break;
 
             default:
-                $ast['arguments'][] = static::createAst($symbol->first);
-                $ast['arguments'][] = static::createAst($symbol->second);
+                $ast['arguments'][] = static::createAST($symbol->first);
+                $ast['arguments'][] = static::createAST($symbol->second);
                 break;
         }
 
