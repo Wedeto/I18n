@@ -30,6 +30,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Wedeto\I18n\Formatting;
 
 use NumberFormatter;
+use InvalidArgumentException;
 
 use Wedeto\I18n\Locale;
 use Wedeto\Util\Functions as WF;
@@ -100,7 +101,7 @@ class Number
      */
     public function setDecimalPrecision(int $decimals)
     {
-        $this->decimals = $decimals;
+        $this->decimal_precision = $decimals;
         return $this;
     }
 

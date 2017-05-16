@@ -42,6 +42,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\I18n\Translator;
 
+use InvalidArgumentException;
+
 use Wedeto\I18n\Locale;
 use Wedeto\Util\LoggerAwareStaticTrait;
 use Wedeto\Util\Cache;
@@ -81,7 +83,7 @@ class Translator
     {
         self::getLogger();
         $this->cache = new Dictionary;
-        $this->setLocale($locale ?: new Locale('c'));
+        $this->setLocale($locale ?: new Locale(\Locale::getDefault()));
     }
 
     /**
@@ -197,12 +199,12 @@ class Translator
     public function translate(string $message, string $textDomain = null, string $locale = null)
     {
         $locale_list = (array)($locale ?: $this->locale_list);
-        $preferred_locale = end($locale_list);
+        $locale = end($locale_list);
         $translation = null;
-        if ($preferred_locale !== 'c')
+        if ($locale !== 'c')
         {
             $textDomain = $textDomain ?: $this->getTextDomain();
-            $translation = $this->getTranslatedMessage($message, null, $locale_list, $textDomain);
+            $translation = $this->getTranslatedMessage($message, null, $locale_list, $textDomain, $locale);
         }
 
         if (!empty($translation))
@@ -225,12 +227,12 @@ class Translator
     public function translatePlural(string $singular, string $plural, int $number, string $textDomain = null, string $locale = null)
     {
         $locale_list = (array)($locale ?: $this->locale_list);
-        $preferred_locale = end($locale_list);
+        $locale = end($locale_list);
         $translation = null;
-        if ($preferred_locale !== 'c')
+        if ($locale !== 'c')
         {
             $textDomain = $textDomain ?: $this->getTextDomain();
-            $translation = $this->getTranslatedMessage($singular, $plural, $locale_list, $textDomain);
+            $translation = $this->getTranslatedMessage($singular, $plural, $locale_list, $textDomain, $locale);
         }
 
         if (empty($translation))
@@ -255,9 +257,10 @@ class Translator
      * @param string $message The message to be translated
      * @param string $locale_list The list of locales to try
      * @param string $textDomain The text domain for the message
+     * @param string &$locale Set to the locale providing the message
      * @return string|array|null The translation, set of translations or null if no translation is available
      */
-    protected function getTranslatedMessage(string $message, $plural = null, array $locale_list, string $textDomain)
+    protected function getTranslatedMessage(string $message, $plural = null, array $locale_list, string $textDomain, string &$locale)
     {
         if (empty($message))
             return '';
@@ -384,9 +387,9 @@ class Translator
      *
      * @return mixed
      */
-    public function getAllMessages(string $textDomain = 'default', string $locale = null)
+    public function getAllMessages(string $textDomain = 'default', Locale $locale = null)
     {
-        $locale = $locale ?: $this->getLocale();
+        $locale = ($locale ?: $this->getLocale())->getLocale();
 
         if (!$this->cache->has($textDomain, $locale))
             $this->loadMessages($textDomain, $locale);

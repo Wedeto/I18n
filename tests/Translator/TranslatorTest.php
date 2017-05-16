@@ -60,10 +60,9 @@ class TranslatorTest extends TestCase
 
     public function setUp()
     {
+        PHPLocale::setDefault('en_EN');
         $this->originalLocale = PHPLocale::getDefault();
         $this->translator = new Translator();
-
-        PHPLocale::setDefault('en_EN');
 
         $this->testFilesDir = __DIR__ . '/resources';
     }
@@ -76,13 +75,13 @@ class TranslatorTest extends TestCase
 
     public function testDefaultLocale()
     {
-        $this->assertEquals('en_EN', $this->translator->getLocale());
+        $this->assertEquals('en_EN', $this->translator->getLocale()->getLocale());
     }
 
     public function testForcedLocale()
     {
         $this->translator->setLocale(new Locale('de_DE'));
-        $this->assertEquals('de_DE', $this->translator->getLocale());
+        $this->assertEquals('de_DE', $this->translator->getLocale()->getLocale());
     }
 
     public function testTranslate()
@@ -194,7 +193,7 @@ class TranslatorTest extends TestCase
         $this->translator->setLocale(new Locale('en_EN'));
         $this->translator->injectMessages('default', $this->getSampleTextDomainWithPlurals(), 'en_EN');
 
-        $allMessages = $this->translator->getAllMessages('default', 'es_ES');
+        $allMessages = $this->translator->getAllMessages('default', new Locale('es_ES'));
         $this->assertEquals(0, count($allMessages));
     }
 
@@ -249,11 +248,25 @@ class TranslatorTest extends TestCase
         // Incorrect Locale, so it shouldn't translate
         $this->translator->setLocale(new Locale('en_EN'));
         $this->assertEquals('foo', $this->translator->translate('foo'));
+        $this->assertNull($this->translator->getFallbackLocale());
 
-        $this->translator->setFallbackLocale(new Locale('en_US'));
+        $fbl = new Locale('en_US');
+        $this->assertEquals($this->translator, $this->translator->setFallbackLocale($fbl));
+        $this->assertEquals($fbl, $this->translator->getFallbackLocale());
+            
 
         // Now it should work
         $this->assertEquals('bar', $this->translator->translate('foo'));
+
+        // And break it again
+        $this->assertEquals($this->translator, $this->translator->setFallbackLocale(null));
+        $this->assertEquals('foo', $this->translator->translate('foo'));
+        $this->assertNull($this->translator->getFallbackLocale());
+
+        // Try if passing a non-locale gives an error
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid locale");
+        $this->translator->setFallbackLocale('foo');
     }
 
     public function testIgnoreTranslation()

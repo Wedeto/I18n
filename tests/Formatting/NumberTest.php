@@ -88,4 +88,19 @@ class NumberTest extends TestCase
         $this->assertEquals(1000000, $fmt->parse("1000000"));
         $this->assertEquals($l, $fmt->getLocale());
     }
+
+    public function testChangeDecimalPrecision()
+    {
+        $l = new Locale('nl_NL');
+        $fmt = new Number($l);
+
+        $this->assertEquals($fmt, $fmt->setDecimalPrecision(2));
+        $this->assertEquals('3,14', $fmt->format(M_PI));
+        $this->assertEquals($fmt, $fmt->setDecimalPrecision(4));
+        $this->assertEquals('3,1416', $fmt->format(M_PI));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Decimals should be an in");
+        $fmt->format(M_PI, 'foo');
+    }
 }

@@ -48,7 +48,7 @@ namespace
      */
     function t(string $msgid, array $values = array())
     {
-        return I18n::getDefault()->translate($msgid, "", $values);
+        return I18n::getDefault()->translate($msgid, null, $values);
     }
 
     /**
@@ -56,7 +56,7 @@ namespace
      */
     function tn(string $msgid, string $plural, int $n, array $values = array())
     {
-        return I18n::getDefault()->translatePlural($msgid, $plural, $n, "", $values);
+        return I18n::getDefault()->translatePlural($msgid, $plural, $n, null, $values);
     }
 
     /**
