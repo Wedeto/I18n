@@ -30,9 +30,77 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Wedeto\I18n\Translator;
 
 use PHPUnit\Framework\TestCase;
-use Locale;
-use InvalidArgumentException;
 
-class GetTextTest extends TestCase
+use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamWrapper;
+use org\bovigo\vfs\vfsStreamDirectory;
+
+use Wedeto\Log\Logger;
+use Wedeto\Log\Writer\WriterInterface;
+use Wedeto\IO\DirReader;
+
+class TranslationLoggerTest extends TestCase
 {
-    protected $testFilesDir;
+    public function setUp()
+    {
+        vfsStreamWrapper::register();
+        vfsStreamWrapper::setRoot(new vfsStreamDirectory('logdir'));
+        $this->dir = vfsStream::url('logdir');
+
+        $this->writer = new TranslationLogger($this->dir . '/%s_%s.pot');
+        $this->logger = Logger::getLogger(Translator::class);
+        $this->logger->removeLogWriters();
+        $this->logger->addLogWriter($this->writer);
+    }
+
+    public function tearDown()
+    {
+        $this->logger->removeLogWriters();
+    }
+
+    public function getDirContents()
+    {
+        $dr = new DirReader($this->dir, DirReader::READ_FILE);
+        $fl = [];
+        foreach ($dr as $entry)
+            $fl[] = $entry;
+        return $fl;
+    }
+
+    public function testWriteLogDirectly()
+    {
+        // Check that a incorrect string is ignored
+        $this->logger->info('Foobar');
+        $dr = $this->getDirContents();
+        $this->assertEquals(0, count($dr), 'Incorrect message writes files');
+
+        // Check that a incorrect context is ignored
+        $this->logger->info('Untranslated message');
+        $dr = $this->getDirContents();
+        $this->assertEquals(0, count($dr), 'Missing locale writes files');
+
+        $this->logger->info('Untranslated message', ['locale' => 'en']);
+        $dr = $this->getDirContents();
+        $this->assertEquals(0, count($dr), 'Missing text domain writes files');
+
+        $this->logger->info('Untranslated message', ['locale' => 'en', 'domain' => 'default']);
+        $dr = $this->getDirContents();
+        $this->assertEquals(0, count($dr), 'Missing msgid writes files');
+
+        $this->logger->info('Untranslated message: foo', ['msgid' => 'foo', 'domain' => 'default', 'locale' => 'en']);
+        $dr = $this->getDirContents();
+        $this->assertEquals(1, count($dr), 'Correct message and context does not write file');
+        $this->assertTrue(file_exists($this->dir . '/default_en.pot'));
+
+        $this->logger->info('Untranslated message: foo', ['msgid' => 'foo', 'msgid_plural' => 'foon', 'domain' => 'default', 'locale' => 'nl']);
+        $dr = $this->getDirContents();
+        $this->assertEquals(2, count($dr), 'Correct message and context does not write file');
+        $this->assertTrue(file_exists($this->dir . '/default_nl.pot'));
+
+        $contents = file_get_contents($this->dir . '/default_nl.pot');
+        $this->assertContains('msgid "foo"', $contents);
+        $this->assertContains('msgid_plural "foo"', $contents);
+        $this->assertContains('msgstr[0]', $contents);
+        $this->assertContains('msgstr[1]', $contents);
+    }
+}

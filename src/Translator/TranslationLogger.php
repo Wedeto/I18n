@@ -27,7 +27,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 */
 
-namespace Wedeto\I18n;
+namespace Wedeto\I18n\Translator;
 
 use Psr\Log\LogLevel;
 use Wedeto\Util\Hook;
@@ -41,7 +41,7 @@ use Wedeto\Log\Logger;
  * 
  * Take note: the file is not aggregated and duplicates will occur.
  */
-class TranslationLogger extends AbstractWriter
+class TranslationLogger extends AbstractWriter 
 {
     /** The pattern of the POT file */
     private $pattern;
@@ -68,7 +68,7 @@ class TranslationLogger extends AbstractWriter
      */
     public function write(string $level, string $message, array $context)
     {
-        if (!substr($message, 0, 12) == "Untranslated")
+        if (substr($message, 0, 12) !== "Untranslated")
             return;
 
         if (!isset($context['locale']))
@@ -88,7 +88,7 @@ class TranslationLogger extends AbstractWriter
             'Wedeto\I18n\Translator\Translator',
             'Psr\Log\AbstractLogger',
             'Wedeto\Log\Logger',
-            'Wedeto\I18n\TranslationLogger'
+            'Wedeto\I18n\Translator\TranslationLogger'
         );
 
         $informative_trace = null;
@@ -120,8 +120,11 @@ class TranslationLogger extends AbstractWriter
         $fh = fopen($file, "a");
         fprintf($fh, "#. Untranslated string at %s\n", date("Y-m-d H:i:s"));
 
-        if ($informative_trace)
+        // @codeCoverageIgnoreStart
+        // PHPUnit strips file and line information from the trace
+        if (isset($informative_trace['file']) && isset($informative_trace['line']))
             fprintf($fh, "#: %s:%d\n", $informative_trace['file'], $informative_trace['line']);
+        // @codeCoverageIgnoreEnd
 
         $msgid = str_replace('"', '\\"', $msgid);
 
