@@ -3,9 +3,8 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Wedeto\I18n\Translator\Translator was adapted from
-Zend\I18n\Translator\Translator.
-The modifications are: Copyright 2017, Egbert van der Wal.
+Wedeto\I18n\Translator\Translator was adapted from Zend\I18n\Translator\Translator.
+The modifications are: Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 The original source code is copyright Zend Technologies USA Inc. The original
 licence information is included below.
@@ -79,11 +78,12 @@ class Translator
     protected $cache;
 
     /** Instantiate a translator */
-    public function __construct(Locale $locale = null)
+    public function __construct($locale = null)
     {
+        $locale = $locale ?: \Locale::getDefault();
         self::getLogger();
         $this->cache = new Dictionary;
-        $this->setLocale($locale ?: new Locale(\Locale::getDefault()));
+        $this->setLocale($locale);
     }
 
     /**
@@ -104,8 +104,9 @@ class Translator
      * @param  string $locale
      * @return Translator Provides fluent interface
      */
-    public function setLocale(Locale $locale)
+    public function setLocale($locale)
     {
+        $locale = Locale::create($locale);
         $this->locale = $locale;
         $this->rebuildLocaleList();
 
@@ -246,7 +247,7 @@ class Translator
             ->evaluate($number);
 
         if (!isset($translation[$index]))
-            throw new \OutOfBoundsException(sprintf('Provided index $index does not exist in plural array', $index));
+            throw new \OutOfBoundsException(sprintf('Provided index %d does not exist in plural array', $index));
 
         return $translation[$index];
     }
@@ -320,14 +321,10 @@ class Translator
      */
     protected function loadMessages(string $textDomain, string $locale)
     {
-        $result = $this->cache->get($textDomain, $locale);
-        if ($result !== null)
-            return;
-
         $messagesLoaded = $this->loadMessagesFromPatterns($textDomain, $locale);
 
         if (!$messagesLoaded)
-            $this->cache->set($textDomain, $locale, new TextDomain);
+            $this->injectMessages($textDomain, new TextDomain, $locale);
     }
 
     /**
@@ -350,12 +347,8 @@ class Translator
                 if (!is_file($filename))
                     continue;
                 $loader = new GetText;
-
-                if ($this->cache->has($textDomain, $locale))
-                    $this->cache->get($textDomain, $locale)->merge($loader->load($locale, $filename));
-                else
-                    $this->cache->set($textDomain, $locale, $loader->load($locale, $filename));
-
+                $messages = $loader->load($locale, $filename);
+                $this->injectMessages($textDomain, $messages, $locale);
                 $messagesLoaded = true;
             }
         }

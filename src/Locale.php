@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Copyright 2017, Egbert van der Wal
+Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -70,6 +70,18 @@ class Locale
         if (empty($this->locale))
             throw new I18nException("Invalid locale: $locale");
     }
+
+    /**
+     * Create a locale from a string. If a Locale object is passed in,
+     * the same object is returned unaltered.
+     *
+     * @param string|Locale $locale
+     */
+    public static function create($locale)
+    {
+        return ($locale instanceof Locale) ? $locale : new Locale($locale);
+    }
+
 
     /**
      * Return a Locale object for the default locale, as set by

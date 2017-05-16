@@ -3,9 +3,8 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Wedeto\I18n\Translator\Plural\Symbol was adapted from
-Zend\I18n\Translator\Plural\Symbol.
-The modifications are: Copyright 2017, Egbert van der Wal.
+Wedeto\I18n\Translator\Plural\Symbol was adapted from Zend\I18n\Translator\Plural\Symbol.
+The modifications are: Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 The original source code is copyright Zend Technologies USA Inc. The original
 licence information is included below.

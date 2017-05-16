@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Copyright 2017, Egbert van der Wal
+Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

@@ -3,9 +3,8 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Wedeto\I18n\Translator\Translator was adapted from
-Zend\I18n\Translator\Translator.
-The modifications are: Copyright 2017, Egbert van der Wal.
+Wedeto\I18n\Translator\Translator was adapted from Zend\I18n\Translator\Translator.
+The modifications are: Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 The original source code is copyright Zend Technologies USA Inc. The original
 licence information is included below.
@@ -327,5 +326,55 @@ class TranslatorTest extends TestCase
     {
         $this->assertEquals('', $this->translator->translate(''));
         $this->assertEquals('', $this->translator->translatePlural('', '', 3));
+    }
+
+    public function testInjectMessages()
+    {
+        $tdm1 = new TextDomain(['foo' => 'bar']);
+        $tdm2 = new TextDomain(['foobar' => 'foobaz']);
+
+        $this->translator->setLocale('en_US');
+        $this->assertEquals($this->translator, $this->translator->injectMessages('default', $tdm1, 'en_US'));
+        $this->assertEquals('bar', $this->translator->translate('foo'));
+        $this->assertEquals('foobar', $this->translator->translate('foobar'));
+
+        $this->assertEquals($this->translator, $this->translator->injectMessages('default', $tdm2, 'en_US'));
+        $this->assertEquals('bar', $this->translator->translate('foo'));
+        $this->assertEquals('foobaz', $this->translator->translate('foobar'));
+    }
+
+    public function testInvalidPlural()
+    {
+        $tdm = $this->getSampleTextDomainWithPlurals();
+
+        $this->translator->injectMessages('default', $tdm, 'en_US');
+        $this->translator->setLocale('en_US');
+
+        $this->expectException(\OutOfBoundsException::class);
+        $this->expectExceptionMessage('Provided index 1 does not exist in plural array');
+        $this->translator->translatePlural('Message 4', 'Message4n', 2);
+    }
+
+    public function testLoadMessagesSkipDirs()
+    {
+        vfsStreamWrapper::register();
+        vfsStreamWrapper::setRoot(new vfsStreamDirectory('translations'));
+        $dir = vfsStream::url('translations');
+
+        $mo_file = file_get_contents($this->testFilesDir . '/translation_en.mo');
+        file_put_contents($dir . '/nl.mo', $mo_file);
+        file_put_contents($dir . '/en.mo', $mo_file);
+        mkdir($dir . '/de.mo');
+    
+        $this->translator->addPattern($dir, '%s.mo', 'default');
+
+        $this->translator->setLocale('en');
+        $this->assertEquals('Message 1 (en)', $this->translator->translate('Message 1'));
+
+        $this->translator->setLocale('nl');
+        $this->assertEquals('Message 1 (en)', $this->translator->translate('Message 1'));
+
+        $this->translator->setLocale('de');
+        $this->assertEquals('Message 1', $this->translator->translate('Message 1'));
     }
 }

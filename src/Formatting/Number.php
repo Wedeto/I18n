@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Copyright 2017, Egbert van der Wal
+Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -58,11 +58,11 @@ class Number
 
     /**
      * Create the object based on the provided locale
-     * @param Locale $locale The locale to use
+     * @param Locale|string $locale The locale to use
      */
-    public function __construct(Locale $locale)
+    public function __construct($locale)
     {
-        $this->locale = $locale;
+        $this->locale = Locale::create($locale);
         $this->number_formatter = new NumberFormatter($this->locale->getLocale(), NumberFormatter::DECIMAL);
 
         // Allow customization using a hook

@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Copyright 2017, Egbert van der Wal
+Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -60,11 +60,11 @@ class Money
      * You can explicity specify this by using keywords, for example, you could
      * use en_US@currency=JPY to use US formatting with JPY as currency.
      *
-     * @param Locale $locale The locale used for formatting
+     * @param Locale|string $locale The locale used for formatting
      */
-    public function __construct(Locale $locale)
+    public function __construct($locale)
     {
-        $this->locale = $locale;
+        $this->locale = Locale::create($locale);
         $this->currency_formatter = new NumberFormatter($this->locale->getLocale(), NumberFormatter::CURRENCY);
         $this->fallback_parser = new Number($locale);
 

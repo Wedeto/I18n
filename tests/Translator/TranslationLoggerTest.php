@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
+Copyright 2017, Egbert van der Wal
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -27,7 +27,12 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 */
 
-namespace Wedeto\I18n;
+namespace Wedeto\I18n\Translator;
 
-class I18nException extends \RuntimeException
-{}
+use PHPUnit\Framework\TestCase;
+use Locale;
+use InvalidArgumentException;
+
+class GetTextTest extends TestCase
+{
+    protected $testFilesDir;

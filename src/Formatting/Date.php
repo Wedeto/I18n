@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Copyright 2017, Egbert van der Wal
+Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -75,13 +75,13 @@ class Date
 
     /**
      * Construct the formatter.
-     * @param Locale $locale The locale to use for formatting and parsing
+     * @param Locale|string $locale The locale to use for formatting and parsing
      * @param string|DateTimeZone|IntlTimeZone $timezone The timezone to use for formatting. When null,
      *                                                   the default time zone is used.
      */
-    public function __construct(Locale $locale, $timezone = null)
+    public function __construct($locale, $timezone = null)
     {
-        $this->locale = $locale;
+        $this->locale = Locale::create($locale);
         $this->date_formatter = new IntlDateFormatter($locale->getLocale(), null, null);
         $this->setTimeZone($timezone);
 
