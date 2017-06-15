@@ -4,9 +4,9 @@
     "description": "Wedeto Platform - Internationalization",
     "homepage": "https://wedeto.net/",
     "require": {
-        "Wedeto/Util": "^0.9.4",
-        "Wedeto/Log": "0.9.*",
-        "Wedeto/IO": "0.9.*",
+        "Wedeto/Util": ">=0.9.4",
+        "Wedeto/Log": ">=0.9.0",
+        "Wedeto/IO": ">=0.9.0",
         "php": ">=7.0.0",
         "ext-intl": ">=1.0.0"
     },
@@ -19,20 +19,13 @@
             "Wedeto\\I18n\\": "src/"
         }
     },
+    "archive": {
+        "exclude": ["/tests","/phpunit.xml"]
+    },
     "authors": [
         {
             "name": "Egbert van der Wal",
             "email": "ewal@pointpro.nl"
-        }
-    ],
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/Wedeto/Util"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/Wedeto/Log"
         }
     ]
 }
