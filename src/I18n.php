@@ -65,31 +65,6 @@ class I18n
     protected $language;
 
     /** 
-     * @return Translate The current translation instance
-     */
-    public static function getDefault()
-    {
-        if (empty(self::$default))
-        {
-            // @codeCoverageIgnoreStart
-            // Can't clear, so untestable.
-            throw new I18nException("No default I18n instance has been set");
-            // @codeCoverageIgnoreEnd
-        }
-        return self::$default;
-    }
-
-    /**
-     * Set the default translate instance
-     *
-     * @param Translate $trl The instance to set as default
-     */
-    public static function setDefault(I18n $i18n)
-    {
-        self::$default = $i18n;
-    }
-
-    /** 
      * Create the I18n object with a specified locale
      */
     public function __construct($locale = null)

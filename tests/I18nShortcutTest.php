@@ -37,12 +37,10 @@ class I18nShortcutTest extends TestCase
 {
     public function setUp()
     {
-        I18nShortcut::load();
-
         $this->l_en = new Locale('en_US');
         $this->l_nl = new Locale('nl_NL');
         $this->i18n = new I18n($this->l_en);
-        I18n::setDefault($this->i18n);
+        I18nShortcut::setInstance($this->i18n);
 
         $this->translator = $this->i18n->getTranslator();
 

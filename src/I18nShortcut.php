@@ -34,21 +34,30 @@ namespace Wedeto\I18n
      */
     class I18nShortcut
     {
-        public static function load()
-        {}
+        protected static $instance;
+
+        public static function setInstance(I18n $instance)
+        {
+            self::$instance = $instance;
+        }
+
+        public static function getInstance()
+        {
+            return self::$instance;
+        }
     }
 }
 
 namespace
 {
-    use Wedeto\I18n\I18n;
+    use Wedeto\I18n\I18nShortcut;
 
     /**
      * @see Wedeto\I18n\I18n::translate
      */
     function t(string $msgid, array $values = array())
     {
-        return I18n::getDefault()->translate($msgid, null, $values);
+        return I18nShortcut::getInstance()->translate($msgid, null, $values);
     }
 
     /**
@@ -56,7 +65,7 @@ namespace
      */
     function tn(string $msgid, string $plural, int $n, array $values = array())
     {
-        return I18n::getDefault()->translatePlural($msgid, $plural, $n, null, $values);
+        return I18nShortcut::getInstance()->translatePlural($msgid, $plural, $n, null, $values);
     }
 
     /**
@@ -64,7 +73,7 @@ namespace
      */
     function td(string $msgid, string $domain, array $values = array())
     {
-        return I18n::getDefault()->translate($msgid, $domain, $values);
+        return I18nShortcut::getInstance()->translate($msgid, $domain, $values);
     }
 
     /**
@@ -72,7 +81,7 @@ namespace
      */
     function tdn(string $msgid, string $plural, int $n, string $domain, array $values = array())
     {
-        return I18n::getDefault()->translatePlural($msgid, $plural, $n, $domain, $values);
+        return I18nShortcut::getInstance()->translatePlural($msgid, $plural, $n, $domain, $values);
     }
 
     /**
@@ -80,7 +89,7 @@ namespace
      */
     function setTextDomain($dom)
     {
-        return I18n::getDefault()->setTextDomain($dom);
+        return I18nShortcut::getInstance()->setTextDomain($dom);
     }
 
     /**
@@ -88,7 +97,7 @@ namespace
      */
     function tl(array $translations, array $values = [])
     {
-        return I18n::getDefault()->translateList($translations);
+        return I18nShortcut::getInstance()->translateList($translations);
     }
 
     /**
@@ -96,7 +105,7 @@ namespace
      */
     function localize_number(float $number)
     {
-        return I18n::getDefault()->getNumberFormatter()->format($number);
+        return I18nShortcut::getInstance()->getNumberFormatter()->format($number);
     }
 
     /**
@@ -104,11 +113,11 @@ namespace
      */
     function localize_money(float $number)
     {
-        return I18n::getDefault()->getMoneyFormatter()->format($number);
+        return I18nShortcut::getInstance()->getMoneyFormatter()->format($number);
     }
 
     function localize_message(string $msg, array $values)
     {
-        return I18n::getDefault()->formatMessage($msg, $values);
+        return I18nShortcut::getInstance()->formatMessage($msg, $values);
     }
 }

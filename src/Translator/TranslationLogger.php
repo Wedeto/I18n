@@ -114,7 +114,7 @@ class TranslationLogger extends AbstractWriter
         if (!file_exists($file))
         {
             touch($file);
-            Hook::execute("Wedeto.IO.FileCreated", ['filename' => $file]);
+            Hook::execute("Wedeto.IO.FileCreated", ['path' => $file]);
         }
 
         $fh = fopen($file, "a");
