@@ -48,6 +48,7 @@ use org\bovigo\vfs\vfsStreamWrapper;
 use org\bovigo\vfs\vfsStreamDirectory;
 
 use Wedeto\Util\Cache;
+use Wedeto\Util\DI\DI;
 use Wedeto\I18n\Translator\Plural\Rule as PluralRule;
 use Wedeto\I18n\Locale;
 use Wedeto\I18n\I18nException;
@@ -68,12 +69,16 @@ class TranslatorTest extends TestCase
         $this->translator = new Translator();
 
         $this->testFilesDir = __DIR__ . '/resources';
+        
+        DI::startNewContext('test');
     }
 
     public function tearDown()
     {
         if (extension_loaded('intl'))
             PHPLocale::setDefault($this->originalLocale);
+
+        DI::destroyContext('test');
     }
 
     public function testDefaultLocale()
@@ -235,8 +240,9 @@ class TranslatorTest extends TestCase
         vfsStreamWrapper::setRoot(new vfsStreamDirectory('cachedir'));
         $this->dir = vfsStream::url('cachedir');
 
-        Cache::setCachePath($this->dir);
-        $c = new Cache("translatecache");
+        $cmgr = DI::getInjector()->getInstance(Cache\Manager::class);
+        $cmgr->setCachePath($this->dir);
+        $c = $cmgr->getCache("translatecache");
 
         $this->translator->setCache($c);
         $this->translator->setLocale(new Locale('en_EN'));

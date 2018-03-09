@@ -4,9 +4,9 @@
     "description": "Wedeto Platform - Internationalization",
     "homepage": "https://wedeto.net/",
     "require": {
-        "Wedeto/Util": ">=0.9.4",
+        "Wedeto/Util": ">=0.9.15",
         "Wedeto/Log": ">=0.9.0",
-        "Wedeto/IO": ">=0.9.0",
+        "Wedeto/IO": ">=0.9.6",
         "php": ">=7.0.0",
         "ext-intl": ">=1.0.0"
     },
