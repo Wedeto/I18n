@@ -32,6 +32,7 @@ namespace Wedeto\I18n;
 use Wedeto\Util\LoggerAwareStaticTrait;
 use Wedeto\I18n\Translator\Translator;
 use Wedeto\IO\DirReader;
+use Wedeto\Util\DI\InjectionTrait;
 
 /**
  * Provide localization functions - an interface to the GetText-file based
@@ -43,8 +44,10 @@ use Wedeto\IO\DirReader;
  */
 class I18n
 {
-    /** The default translation instance */
-    protected static $default = null;
+    use InjectionTrait;
+
+    /** Reusable instances */
+    const WDI_REUSABLE = true;
 
     /** The translator object, interfacing with the language .po and .mo files. */
     protected $translator;
