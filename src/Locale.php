@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
+Copyright 2017-2018, Egbert van der Wal <wedeto at pointpro dot nl>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -51,7 +51,7 @@ class Locale
     /**
      * Construct the locale object. The locale will be specified
      * by a valid Locale string. The locale will be canonicalized, using
-     * level 2 locatization as described in: 
+     * level 2 canonicalization as described in: 
      * 
      * http://userguide.icu-project.org/locale#TOC-Canonicalization
      *
