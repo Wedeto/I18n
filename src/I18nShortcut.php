@@ -41,6 +41,9 @@ namespace Wedeto\I18n
             self::$instance = $instance;
         }
 
+        /**
+         * @return I18n
+         */
         public static function getInstance()
         {
             return self::$instance;
@@ -103,9 +106,9 @@ namespace
     /**
      * @see Wedeto\I18n\Formatting\Number::format
      */
-    function localize_number(float $number)
+    function localize_number(float $number, int $decimals = 2)
     {
-        return I18nShortcut::getInstance()->getNumberFormatter()->format($number);
+        return I18nShortcut::getInstance()->getNumberFormatter()->format($number, $decimals);
     }
 
     /**
