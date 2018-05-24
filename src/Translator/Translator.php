@@ -45,7 +45,7 @@ use InvalidArgumentException;
 
 use Wedeto\I18n\Locale;
 use Wedeto\Util\LoggerAwareStaticTrait;
-use Wedeto\Util\Cache;
+use Wedeto\Util\Cache\Cache;
 use Wedeto\Util\Dictionary;
 use Wedeto\Util\Functions as WF;
 

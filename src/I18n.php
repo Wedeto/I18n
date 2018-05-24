@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
+Copyright 2017-2018, Egbert van der Wal <wedeto at pointpro dot nl>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -32,6 +32,7 @@ namespace Wedeto\I18n;
 use Wedeto\Util\LoggerAwareStaticTrait;
 use Wedeto\I18n\Translator\Translator;
 use Wedeto\IO\DirReader;
+use Wedeto\Util\DI\InjectionTrait;
 
 /**
  * Provide localization functions - an interface to the GetText-file based
@@ -43,8 +44,10 @@ use Wedeto\IO\DirReader;
  */
 class I18n
 {
-    /** The default translation instance */
-    protected static $default = null;
+    use InjectionTrait;
+
+    /** Reusable instances */
+    const WDI_REUSABLE = true;
 
     /** The translator object, interfacing with the language .po and .mo files. */
     protected $translator;
