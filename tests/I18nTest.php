@@ -38,7 +38,7 @@ use Wedeto\I18n\Translator\TextDomain;
  */
 class I18nTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         $this->testFilesDir = __DIR__ . '/Translator/resources';
         $this->l_en = new Locale('en_US');
@@ -277,4 +277,3 @@ class I18nTest extends TestCase
         );
     }
 }
-

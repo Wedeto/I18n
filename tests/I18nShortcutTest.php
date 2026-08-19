@@ -35,7 +35,7 @@ use Wedeto\I18n\Translator\TextDomain;
 
 class I18nShortcutTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         $this->l_en = new Locale('en_US');
         $this->l_nl = new Locale('nl_NL');
@@ -198,4 +198,3 @@ class I18nShortcutTest extends TestCase
         );
     }
 }
-

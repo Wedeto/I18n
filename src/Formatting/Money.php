@@ -87,7 +87,7 @@ class Money
      * @param string $currency The currency to use. When omitted, the default is used
      * @return string The formatted money string
      */
-    public function format(float $number, string $currency = null)
+    public function format(float $number, ?string $currency = null)
     {
         $currency = $currency ?: $this->getCurrencyCode();
         $str = $this->currency_formatter->formatCurrency($number, $currency);

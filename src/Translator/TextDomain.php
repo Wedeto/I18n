@@ -152,6 +152,17 @@ class TextDomain extends Dictionary
         $this->values = $data['messages'];
     }
 
+    public function __serialize(): array
+    {
+        return $this->jsonSerialize();
+    }
+
+    public function __unserialize(array $data): void
+    {
+        $this->plural_rule = $data['plural_rule'];
+        $this->values = $data['messages'];
+    }
+
     /**
      * Prepare data for JSON serializing - wrap it in an array
      * @return array The 'serialized' version of this TextDomain

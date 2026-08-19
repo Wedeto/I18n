@@ -238,7 +238,7 @@ class RuleTest extends TestCase
         }
         catch (LogicException $e)
         {
-            $this->assertContains("Syntax error", $e->getMessage());
+            $this->assertStringContainsString("Syntax error", $e->getMessage());
             $thrown = true;
         }
         $this->assertTrue($thrown);
@@ -252,7 +252,7 @@ class RuleTest extends TestCase
         }
         catch (LogicException $e)
         {
-            $this->assertContains("Unknown operator", $e->getMessage());
+            $this->assertStringContainsString("Unknown operator", $e->getMessage());
             $thrown = true;
         }
         $this->assertTrue($thrown);

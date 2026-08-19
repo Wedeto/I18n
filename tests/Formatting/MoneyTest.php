@@ -37,6 +37,8 @@ use Wedeto\I18n\I18nException;
 
 class MoneyTest extends TestCase
 {
+    use \Prophecy\PhpUnit\ProphecyTrait;
+
     public function testFormatting()
     {
         $l = new Locale('en_US');
@@ -44,7 +46,7 @@ class MoneyTest extends TestCase
         $this->assertEquals("$100.00", $fmt->format(100));
         $this->assertEquals("$100,000.00", $fmt->format(100000));
         $this->assertEquals("€100,000.00", $fmt->format(100000, "EUR"));
-        $this->assertEquals("RUB100,000.00", $fmt->format(100000, "RUB"));
+        $this->assertEquals("RUB 100,000.00", $fmt->format(100000, "RUB"));
         $this->assertEquals("$", $fmt->getCurrencySymbol());
         $this->assertEquals("USD", $fmt->getCurrencyCode());
         $this->assertEquals($l, $fmt->getLocale());
@@ -61,11 +63,11 @@ class MoneyTest extends TestCase
 
         $l = new Locale('ru_RU');
         $fmt = new Money($l);
-        $this->assertEquals("100,00 руб.", $fmt->format(100));
-        $this->assertEquals("100 000,00 руб.", $fmt->format(100000));
+        $this->assertEquals("100,00 ₽", $fmt->format(100));
+        $this->assertEquals("100 000,00 ₽", $fmt->format(100000));
         $this->assertEquals('100 000,00 $', $fmt->format(100000, "USD"));
         $this->assertEquals('100 000,00 €', $fmt->format(100000, "EUR"));
-        $this->assertEquals("руб.", $fmt->getCurrencySymbol());
+        $this->assertEquals("₽", $fmt->getCurrencySymbol());
         $this->assertEquals("RUB", $fmt->getCurrencyCode());
 
         $this->expectException(I18nException::class);
@@ -118,7 +120,7 @@ class MoneyTest extends TestCase
         }
         catch (I18nException $e)
         {
-            $this->assertContains("Cannot parse value", $e->getMessage());
+            $this->assertStringContainsString("Cannot parse value", $e->getMessage());
             $thrown = true;
         }
         $this->assertTrue($thrown);

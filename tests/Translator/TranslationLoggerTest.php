@@ -44,7 +44,7 @@ use Wedeto\IO\DirReader;
  */
 class TranslationLoggerTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         vfsStreamWrapper::register();
         vfsStreamWrapper::setRoot(new vfsStreamDirectory('logdir'));
@@ -57,7 +57,7 @@ class TranslationLoggerTest extends TestCase
         $this->logger->addLogWriter($this->writer);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->logger->removeLogWriters();
     }
@@ -102,10 +102,10 @@ class TranslationLoggerTest extends TestCase
         $this->assertTrue(file_exists($this->dir . '/default_nl.pot'));
 
         $contents = file_get_contents($this->dir . '/default_nl.pot');
-        $this->assertContains('msgid "foo"', $contents);
-        $this->assertContains('msgid_plural "foo"', $contents);
-        $this->assertContains('msgstr[0]', $contents);
-        $this->assertContains('msgstr[1]', $contents);
+        $this->assertStringContainsString('msgid "foo"', $contents);
+        $this->assertStringContainsString('msgid_plural "foo"', $contents);
+        $this->assertStringContainsString('msgstr[0]', $contents);
+        $this->assertStringContainsString('msgstr[1]', $contents);
     }
 
     public function testWriteLogAfterFailedTranslation()
@@ -120,6 +120,6 @@ class TranslationLoggerTest extends TestCase
         $this->assertTrue(file_exists($this->dir . '/default_en.pot'));
 
         $contents = file_get_contents($this->dir . '/default_en.pot');
-        $this->assertContains('msgid "foo"', $contents);
+        $this->assertStringContainsString('msgid "foo"', $contents);
     }
 }

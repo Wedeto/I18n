@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 
 class LocaleTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         \Locale::setDefault('en_US');
     }
@@ -115,7 +115,7 @@ class LocaleTest extends TestCase
 
     public function testLocaleWithLanguageAndScript()
     {
-        $l = new Locale('zh_CHT');
+        $l = new Locale('zh_Hant');
         $dl = new Locale('nl');
         
         $this->assertEquals('zh_Hant', $l->getLocale());
@@ -207,7 +207,7 @@ class LocaleTest extends TestCase
             }
             catch (I18nException $e)
             {
-                $this->assertContains($error, $e->getMessage());
+                $this->assertStringContainsString($error, $e->getMessage());
                 $thrown = true;
             }
             $this->assertTrue($thrown, "Check that exception was thrown when parsing " . $lstr);
@@ -226,4 +226,3 @@ class LocaleTest extends TestCase
         }
     }
 }
-

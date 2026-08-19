@@ -197,7 +197,7 @@ class Translator
      * @param string $locale The locale for the translation
      * @return string The translated string
      */
-    public function translate(string $message, string $textDomain = null, string $locale = null)
+    public function translate(string $message, ?string $textDomain = null, ?string $locale = null)
     {
         $locale_list = (array)($locale ?: $this->locale_list);
         $locale = end($locale_list);
@@ -225,7 +225,7 @@ class Translator
      * @return string The translated string
      * @throws \OutOfBoundsException If the returned index does not exist in the translated string.
      */
-    public function translatePlural(string $singular, string $plural, int $number, string $textDomain = null, string $locale = null)
+    public function translatePlural(string $singular, string $plural, int $number, ?string $textDomain = null, ?string $locale = null)
     {
         $locale_list = (array)($locale ?: $this->locale_list);
         $locale = end($locale_list);
@@ -392,7 +392,7 @@ class Translator
      *
      * @return mixed
      */
-    public function getAllMessages(string $textDomain = 'default', Locale $locale = null)
+    public function getAllMessages(string $textDomain = 'default', ?Locale $locale = null)
     {
         $locale = ($locale ?: $this->getLocale())->getLocale();
 
@@ -405,7 +405,7 @@ class Translator
     /**
      * @return array List of Locale IDs that are available in any of the text domains.
      */
-    public function getLoadedLocales(string $textDomain = null)
+    public function getLoadedLocales(?string $textDomain = null)
     {
         $locales = [];
         if ($textDomain)

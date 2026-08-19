@@ -62,7 +62,7 @@ class TranslatorTest extends TestCase
     protected $originalLocale;
     protected $testFilesDir;
 
-    public function setUp()
+    public function setUp(): void
     {
         PHPLocale::setDefault('en_EN');
         $this->originalLocale = PHPLocale::getDefault();
@@ -73,7 +73,7 @@ class TranslatorTest extends TestCase
         DI::startNewContext('test');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         if (extension_loaded('intl'))
             PHPLocale::setDefault($this->originalLocale);

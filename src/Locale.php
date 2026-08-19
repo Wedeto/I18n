@@ -192,7 +192,7 @@ class Locale
      * @param Locale $locale The locale to display in. May be null to use the default
      * @return string The locale display name.
      */
-    public function getDisplayName(Locale $in_locale = null)
+    public function getDisplayName(?Locale $in_locale = null)
     {
         return $this->getDisplayItem('display_name', 'GetDisplayName', 'getDisplayName', $in_locale);
     }
@@ -203,7 +203,7 @@ class Locale
      * @param Locale $locale The langauge to display in. May be null to use the default
      * @return string The language display name.
      */
-    public function getDisplayLanguage(Locale $in_locale = null)
+    public function getDisplayLanguage(?Locale $in_locale = null)
     {
         return $this->getDisplayItem('display_language', 'GetDisplayLanguage', 'getDisplayLanguage', $in_locale);
     }
@@ -214,7 +214,7 @@ class Locale
      * @param Locale $locale The locale to display in. May be null to use the default
      * @return string The display region name. Can be an empty string when no region is set in the locale
      */
-    public function getDisplayRegion(Locale $in_locale = null)
+    public function getDisplayRegion(?Locale $in_locale = null)
     {
         return $this->getDisplayItem('display_region', 'GetDisplayRegion', 'getDisplayRegion', $in_locale);
     }
@@ -225,7 +225,7 @@ class Locale
      * @param Locale $locale The locale to display in. May be null to use the default
      * @return string The display script name. Can be an empty string when no script is set in the locale
      */
-    public function getDisplayScript(Locale $in_locale = null)
+    public function getDisplayScript(?Locale $in_locale = null)
     {
         return $this->getDisplayItem('display_script', 'GetDisplayScript', 'getDisplayScript', $in_locale);
     }
@@ -236,7 +236,7 @@ class Locale
      * @param Locale $locale The locale to display in. May be null to use the default
      * @return string The display variant name. Can be an empty string when no variant is set in the locale
      */
-    public function getDisplayVariant(Locale $in_locale = null)
+    public function getDisplayVariant(?Locale $in_locale = null)
     {
         return $this->getDisplayItem('display_variant', 'GetDisplayVariant', 'getDisplayVariant', $in_locale);
     }
@@ -252,7 +252,7 @@ class Locale
      * @param string $method The method in the Locale class to call to obtain the answer
      * @return mixed The resulting information
      */
-    protected function getDisplayItem(string $name, string $hook, string $method, Locale $in_locale = null)
+    protected function getDisplayItem(string $name, string $hook, string $method, ?Locale $in_locale = null)
     {
         $in_locale = $in_locale ?: Locale::getDefault();
         $in_locale = $in_locale->getLocale();

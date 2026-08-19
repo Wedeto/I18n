@@ -322,7 +322,7 @@ class I18n
      * @param array $translation The translated strings, in language => translation pairs.
      * @return string The best matching translation
      */
-    public function translateList(array $translations, array $values = null)
+    public function translateList(array $translations, ?array $values = null)
     {
         $msg = (string)($translations[$this->language] ?? reset($translations));
         return empty($values) ? $msg : $this->formatMessage($msg, $values);
@@ -337,7 +337,7 @@ class I18n
      * @return The translated string
      * @see Translate::setTextDomain
      */
-    public function translate(string $msgid, string $domain = null, array $values = array())
+    public function translate(string $msgid, ?string $domain = null, array $values = array())
     {
         return $this->formatMessage($this->translator->translate($msgid, $domain, $this->locale), $values);
     }
@@ -353,7 +353,7 @@ class I18n
      * @return The translated string
      * @see Translate::setTextDomain
      */
-    public function translatePlural(string $msgid, string $plural, int $n, string $domain = null, array $values = array())
+    public function translatePlural(string $msgid, string $plural, int $n, ?string $domain = null, array $values = array())
     {
         return $this->formatMessage($this->translator->translatePlural($msgid, $plural, $n, $domain), $values);
     }
