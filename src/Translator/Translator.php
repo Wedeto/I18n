@@ -261,7 +261,7 @@ class Translator
      * @param string &$locale Set to the locale providing the message
      * @return string|array|null The translation, set of translations or null if no translation is available
      */
-    protected function getTranslatedMessage(string $message, $plural = null, array $locale_list, string $textDomain, string &$locale)
+    protected function getTranslatedMessage(string $message, $plural, array $locale_list, string $textDomain, string &$locale)
     {
         if (empty($message))
             return '';

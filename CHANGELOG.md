@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- Fix the translator helper signature so optional parameters do not precede required parameters.
+
 ## 1.1.0
 
 - Add support for PHP 8.1 through PHP 8.5.
