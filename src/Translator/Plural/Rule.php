@@ -97,16 +97,24 @@ class Rule implements \Serializable
 
     public function serialize()
     {
-        $data = array(
-            'numPlurals' => $this->numPlurals,
-            'ast' => $this->ast
-        );
-        return serialize($data);
+        return serialize($this->__serialize());
     }
 
     public function unserialize($data)
     {
-        $data = unserialize($data);
+        $this->__unserialize(unserialize($data));
+    }
+
+    public function __serialize(): array
+    {
+        return array(
+            'numPlurals' => $this->numPlurals,
+            'ast' => $this->ast
+        );
+    }
+
+    public function __unserialize(array $data): void
+    {
         $this->numPlurals = $data['numPlurals'];
         $this->ast = $data['ast'];
     }

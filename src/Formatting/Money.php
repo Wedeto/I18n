@@ -50,6 +50,8 @@ class Money
 
     /** The currency used for formatting */
     protected $currency;
+    protected $currency_code;
+    protected $currency_symbol;
 
     /** Currency optional -> use number parses when normal parser fails */
     protected $fallback_parser;

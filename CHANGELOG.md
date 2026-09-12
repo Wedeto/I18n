@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.2
+
+- Add modern serialization methods to plural rules while retaining the legacy serialization API.
+- Declare money formatter state explicitly for PHP 8.2 and newer.
+
 ## 1.1.1
 
 - Fix the translator helper signature so optional parameters do not precede required parameters.

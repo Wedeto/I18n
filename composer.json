@@ -4,8 +4,8 @@
     "description": "Wedeto Platform - Internationalization",
     "homepage": "https://wedeto.net/",
     "require": {
-        "wedeto/util": "^1.1.1",
-        "wedeto/log": "^1.1.0",
+        "wedeto/util": "^1.1.7",
+        "wedeto/log": "^1.1.1",
         "wedeto/io": "^1.1.0",
         "php": "^7.4 || >=8.1",
         "ext-intl": "*",
